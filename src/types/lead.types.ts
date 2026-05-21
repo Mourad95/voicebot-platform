@@ -1,4 +1,4 @@
-import type { NicheName } from './niche.types';
+import type { SectorName } from './sector.types';
 import type { QualificationData } from './qualification.types';
 
 export const LEAD_STATUSES = [
@@ -15,7 +15,7 @@ export interface Lead {
   readonly id?: string;
   readonly nom: string;
   readonly telephone: string;
-  readonly niche: NicheName;
+  readonly sector: SectorName;
   readonly qualificationData: QualificationData;
   readonly creneauRappel?: Date | null;
   readonly status: LeadStatus;

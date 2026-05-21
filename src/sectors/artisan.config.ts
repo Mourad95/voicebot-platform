@@ -1,4 +1,4 @@
-import type { NicheConfig, SmsTemplatePayload } from '../types';
+import type { SectorConfig, SmsTemplatePayload } from '../types';
 
 const formatRappel = (creneauRappel?: Date | null): string =>
   creneauRappel
@@ -11,7 +11,7 @@ const formatRappel = (creneauRappel?: Date | null): string =>
 const formatReceivedDate = (): string =>
   new Date().toLocaleDateString('fr-FR', { dateStyle: 'long' });
 
-export const artisanConfig: NicheConfig = {
+export const artisanConfig: SectorConfig = {
   name: 'artisan',
   displayName: 'Artisan',
   qualificationFields: [

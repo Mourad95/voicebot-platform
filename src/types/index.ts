@@ -4,14 +4,14 @@ export type {
   BusinessHours,
   BusinessHoursSlot,
   DayOfWeek,
-  NicheConfig,
-  NicheName,
+  SectorConfig,
+  SectorName,
   QualificationFieldConfig,
   QualificationFieldType,
   SmsTemplatePayload,
-} from './niche.types';
+} from './sector.types';
 
-export { DAYS_OF_WEEK, NICHE_NAMES } from './niche.types';
+export { DAYS_OF_WEEK, SECTOR_NAMES } from './sector.types';
 
 export type { Lead, LeadStatus } from './lead.types';
 

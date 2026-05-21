@@ -1,4 +1,4 @@
-import type { NicheName } from './niche.types';
+import type { SectorName } from './sector.types';
 
 export interface AppRuntimeConfig {
   readonly nodeEnv: string;
@@ -9,5 +9,5 @@ export interface AppRuntimeConfig {
   readonly twilioPhone: string;
   readonly retellApiKey: string;
   readonly testPhone: string;
-  readonly niche: NicheName;
+  readonly sector: SectorName;
 }

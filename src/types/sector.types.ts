@@ -35,7 +35,7 @@ export interface SmsTemplatePayload {
   readonly creneauRappel?: Date | null;
 }
 
-export interface NicheConfig {
+export interface SectorConfig {
   readonly name: string;
   readonly displayName: string;
   readonly qualificationFields: readonly QualificationFieldConfig[];
@@ -43,6 +43,6 @@ export interface NicheConfig {
   readonly defaultBusinessHours: BusinessHours;
 }
 
-export const NICHE_NAMES = ['immo', 'medical', 'artisan'] as const;
+export const SECTOR_NAMES = ['immo', 'medical', 'artisan'] as const;
 
-export type NicheName = (typeof NICHE_NAMES)[number];
+export type SectorName = (typeof SECTOR_NAMES)[number];
