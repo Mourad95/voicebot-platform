@@ -1,20 +1,12 @@
 import mongoose, { Types } from 'mongoose';
 
-declare const process: {
-  readonly stdout: { write(chunk: string): void };
-};
-
 import { Prospect } from '../models/Prospect';
 import { Slot } from '../models/Slot';
+import { logToolEvent } from './tool-log';
+import type { ToolResult } from './tool-result.types';
+import { toToolError } from './tool-result.types';
 
-type ToolFailure = { readonly success: false; readonly error: string };
-
-type SaveProspectSuccess = {
-  readonly success: true;
-  readonly prospectId: string;
-};
-
-export type SaveProspectResult = SaveProspectSuccess | ToolFailure;
+export type SaveProspectResult = ToolResult<{ readonly prospectId: string }>;
 
 export type SaveProspectInput = {
   readonly agencyId: string;
@@ -25,12 +17,6 @@ export type SaveProspectInput = {
   readonly creneauRappel?: string;
   readonly callId?: string;
 };
-
-function logEvent(message: string, meta?: Record<string, string | undefined>): void {
-  process.stdout.write(
-    `${JSON.stringify({ level: 'info', message, ...meta, ts: new Date().toISOString() })}\n`,
-  );
-}
 
 function isValidObjectId(value: string): boolean {
   return Types.ObjectId.isValid(value) && new Types.ObjectId(value).toString() === value;
@@ -110,7 +96,7 @@ export async function saveProspect(
       }
     });
 
-    logEvent('saveProspect: prospect created', {
+    logToolEvent('saveProspect: prospect created', {
       agencyId: input.agencyId,
       prospectId,
       slotId: input.slotId,
@@ -118,8 +104,7 @@ export async function saveProspect(
 
     return { success: true, prospectId };
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return { success: false, error: errorMessage };
+    return { success: false, error: toToolError(error) };
   } finally {
     await session.endSession();
   }

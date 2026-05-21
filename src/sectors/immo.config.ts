@@ -1,15 +1,49 @@
-import type { SectorConfig, SmsTemplatePayload } from '../types';
+import type { CallSummaryInput, SectorConfig } from '../types';
+import { formatSmsMessage } from '../types/sector.types';
 
-const formatRappel = (creneauRappel?: Date | null): string =>
-  creneauRappel
-    ? creneauRappel.toLocaleString('fr-FR', {
-        dateStyle: 'short',
-        timeStyle: 'short',
-      })
-    : 'À définir';
+const PROJET_VERBS: Record<string, string> = {
+  achat: 'acheter',
+  vente: 'vendre',
+  location: 'louer',
+};
 
-const formatReceivedDate = (): string =>
-  new Date().toLocaleDateString('fr-FR', { dateStyle: 'long' });
+const formatRappelSuffix = (creneauRappel?: Date | null): string => {
+  if (creneauRappel === undefined || creneauRappel === null) {
+    return '';
+  }
+
+  const label = creneauRappel.toLocaleString('fr-FR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  });
+
+  return ` Rappel prévu le ${label}.`;
+};
+
+const formatClientName = (nom: string): string => {
+  const trimmed = nom.trim();
+  return trimmed === '' ? 'Un prospect' : trimmed;
+};
+
+const buildCallSummaryText = ({
+  nom,
+  qualificationData,
+  creneauRappel,
+}: CallSummaryInput): string => {
+  const client = formatClientName(nom);
+  const projet = qualificationData.projet ?? 'inconnu';
+  const projetVerb = PROJET_VERBS[projet];
+  const budget = qualificationData.budget ?? 'non précisé';
+  const delai = qualificationData.delai ?? 'non précisé';
+  const typeBien = qualificationData.typeBien?.trim();
+  const bienDetail = typeBien !== undefined && typeBien !== '' ? ` (${typeBien})` : '';
+
+  if (projetVerb === undefined) {
+    return `${client} a un projet immobilier sur un bien${bienDetail} (budget ${budget}, délai ${delai}).${formatRappelSuffix(creneauRappel)}`;
+  }
+
+  return `${client} souhaite ${projetVerb} un bien${bienDetail} pour un budget de ${budget}, délai ${delai}.${formatRappelSuffix(creneauRappel)}`;
+};
 
 export const immoConfig: SectorConfig = {
   name: 'immo',
@@ -37,27 +71,8 @@ export const immoConfig: SectorConfig = {
       required: false,
     },
   ],
-  smsTemplate: ({
-    nom,
-    telephone,
-    qualificationData,
-    creneauRappel,
-  }: SmsTemplatePayload): string => {
-    const typeBien = qualificationData.typeBien ?? 'Non précisé';
-
-    return [
-      '🏠 Nouveau prospect immobilier',
-      `Nom : ${nom}`,
-      `Tél : ${telephone}`,
-      `Projet : ${qualificationData.projet ?? ''}`,
-      `Type de bien : ${typeBien}`,
-      `Budget : ${qualificationData.budget ?? ''}`,
-      `Délai : ${qualificationData.delai ?? ''}`,
-      `Rappel : ${formatRappel(creneauRappel)}`,
-      '---',
-      `Reçu le ${formatReceivedDate()}`,
-    ].join('\n');
-  },
+  buildCallSummaryText,
+  smsTemplate: formatSmsMessage,
   defaultBusinessHours: {
     monday: { start: 9, end: 19 },
     tuesday: { start: 9, end: 19 },

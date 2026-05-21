@@ -1,26 +1,14 @@
-import Twilio from 'twilio';
+import Twilio from "twilio";
 
-declare const process: {
-  readonly env: Record<string, string | undefined>;
-  readonly stdout: { write(chunk: string): void };
-};
+import { getSector } from "../../sectors";
+import type { QualificationData } from "../../types/qualification.types";
+import type { IAgencyDocument } from "../models/Agency";
+import { Prospect } from "../models/Prospect";
+import { logToolEvent } from "./tool-log";
+import type { ToolResult } from "./tool-result.types";
+import { toToolError } from "./tool-result.types";
 
-import { getSector } from '../../sectors';
-import type { QualificationData } from '../../types/qualification.types';
-import type { IAgencyDocument } from '../models/Agency';
-import { Prospect } from '../models/Prospect';
-
-type ToolFailure = { readonly success: false; readonly error: string };
-
-type NotifyAgentSuccess = { readonly success: true };
-
-export type NotifyAgentResult = NotifyAgentSuccess | ToolFailure;
-
-function logEvent(message: string, meta?: Record<string, string | undefined>): void {
-  process.stdout.write(
-    `${JSON.stringify({ level: 'info', message, ...meta, ts: new Date().toISOString() })}\n`,
-  );
-}
+export type NotifyAgentResult = ToolResult;
 
 function mapQualificationData(
   qualificationData: Map<string, string> | undefined,
@@ -32,18 +20,20 @@ function mapQualificationData(
   return Object.fromEntries(qualificationData.entries());
 }
 
-function isPopulatedAgency(
-  agency: unknown,
-): agency is IAgencyDocument {
+function isPopulatedAgency(agency: unknown): agency is IAgencyDocument {
   return (
-    typeof agency === 'object' &&
+    typeof agency === "object" &&
     agency !== null &&
-    'agentPhone' in agency &&
-    'sector' in agency
+    "agentPhone" in agency &&
+    "sector" in agency
   );
 }
 
-function getTwilioConfig(): { sid: string; token: string; from: string } | null {
+function getTwilioConfig(): {
+  sid: string;
+  token: string;
+  from: string;
+} | null {
   const sid = process.env.TWILIO_SID;
   const token = process.env.TWILIO_TOKEN;
   const from = process.env.TWILIO_PHONE;
@@ -52,7 +42,7 @@ function getTwilioConfig(): { sid: string; token: string; from: string } | null 
     return null;
   }
 
-  if (sid === '' || token === '' || from === '') {
+  if (sid === "" || token === "" || from === "") {
     return null;
   }
 
@@ -65,28 +55,37 @@ export async function notifyAgent(input: {
   try {
     const prospect = await Prospect.findById(input.prospectId).populate<{
       agencyId: IAgencyDocument;
-    }>('agencyId');
+    }>("agencyId");
 
     if (prospect === null) {
-      return { success: false, error: 'Prospect not found' };
+      return { success: false, error: "Prospect not found" };
     }
 
     if (!isPopulatedAgency(prospect.agencyId)) {
-      return { success: false, error: 'Agency not found for prospect' };
+      return { success: false, error: "Agency not found for prospect" };
     }
 
     const agency = prospect.agencyId;
     const sectorConfig = getSector(agency.sector);
-    const message = sectorConfig.smsTemplate({
-      nom: prospect.nom ?? '',
-      telephone: prospect.telephone ?? '',
+    const prospectNom = prospect.nom ?? "";
+    const prospectNumero = prospect.telephone ?? "";
+    const summaryInput = {
+      nom: prospectNom,
+      telephone: prospectNumero,
       qualificationData: mapQualificationData(prospect.qualificationData),
       creneauRappel: prospect.creneauRappel ?? null,
+    };
+    const text = sectorConfig.buildCallSummaryText(summaryInput);
+    const message = sectorConfig.smsTemplate({
+      nom: prospectNom,
+      numero: prospectNumero,
+      text,
+      status: "important",
     });
 
     const twilioConfig = getTwilioConfig();
     if (twilioConfig === null) {
-      return { success: false, error: 'Twilio configuration is missing' };
+      return { success: false, error: "Twilio configuration is missing" };
     }
 
     const client = Twilio(twilioConfig.sid, twilioConfig.token);
@@ -97,7 +96,7 @@ export async function notifyAgent(input: {
       to: agency.agentPhone,
     });
 
-    logEvent(
+    logToolEvent(
       `SMS envoyé à ${agency.agentPhone} pour prospect ${input.prospectId}`,
       {
         agentPhone: agency.agentPhone,
@@ -107,8 +106,8 @@ export async function notifyAgent(input: {
 
     return { success: true };
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    logEvent('notifyAgent: Twilio or processing failed', {
+    const errorMessage = toToolError(error);
+    logToolEvent("notifyAgent: Twilio or processing failed", {
       prospectId: input.prospectId,
       error: errorMessage,
     });

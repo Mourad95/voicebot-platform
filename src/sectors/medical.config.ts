@@ -1,15 +1,36 @@
-import type { SectorConfig, SmsTemplatePayload } from '../types';
+import type { CallSummaryInput, SectorConfig } from '../types';
+import { formatSmsMessage } from '../types/sector.types';
 
-const formatRappel = (creneauRappel?: Date | null): string =>
-  creneauRappel
-    ? creneauRappel.toLocaleString('fr-FR', {
-        dateStyle: 'short',
-        timeStyle: 'short',
-      })
-    : 'À définir';
+const formatRappelSuffix = (creneauRappel?: Date | null): string => {
+  if (creneauRappel === undefined || creneauRappel === null) {
+    return '';
+  }
 
-const formatReceivedDate = (): string =>
-  new Date().toLocaleDateString('fr-FR', { dateStyle: 'long' });
+  const label = creneauRappel.toLocaleString('fr-FR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  });
+
+  return ` Rappel prévu le ${label}.`;
+};
+
+const formatClientName = (nom: string): string => {
+  const trimmed = nom.trim();
+  return trimmed === '' ? 'Un patient' : trimmed;
+};
+
+const buildCallSummaryText = ({
+  nom,
+  qualificationData,
+  creneauRappel,
+}: CallSummaryInput): string => {
+  const client = formatClientName(nom);
+  const motif = qualificationData.motif ?? 'un motif non précisé';
+  const typeConsultation = qualificationData.typeConsultation ?? 'non précisé';
+  const ordonnance = qualificationData.ordonnance ?? 'non précisé';
+
+  return `${client} souhaite un rendez-vous (${typeConsultation}) pour ${motif}, ordonnance : ${ordonnance}.${formatRappelSuffix(creneauRappel)}`;
+};
 
 export const medicalConfig: SectorConfig = {
   name: 'medical',
@@ -33,26 +54,8 @@ export const medicalConfig: SectorConfig = {
       required: false,
     },
   ],
-  smsTemplate: ({
-    nom,
-    telephone,
-    qualificationData,
-    creneauRappel,
-  }: SmsTemplatePayload): string => {
-    const ordonnance = qualificationData.ordonnance ?? 'Non précisé';
-
-    return [
-      '🏥 Nouveau patient',
-      `Nom : ${nom}`,
-      `Tél : ${telephone}`,
-      `Motif : ${qualificationData.motif ?? ''}`,
-      `Type : ${qualificationData.typeConsultation ?? ''}`,
-      `Ordonnance : ${ordonnance}`,
-      `Rappel : ${formatRappel(creneauRappel)}`,
-      '---',
-      `Reçu le ${formatReceivedDate()}`,
-    ].join('\n');
-  },
+  buildCallSummaryText,
+  smsTemplate: formatSmsMessage,
   defaultBusinessHours: {
     monday: { start: 8, end: 19 },
     tuesday: { start: 8, end: 19 },

@@ -1,26 +1,23 @@
 import { Types } from 'mongoose';
 
-declare const process: {
-  readonly stdout: { write(chunk: string): void };
-};
-
 import { Slot } from '../models/Slot';
+import { logToolEvent } from './tool-log';
+import type { ToolFailure, ToolSuccess } from './tool-result.types';
+import { toToolError } from './tool-result.types';
 
-type ToolFailure = { readonly success: false; readonly error: string };
+type SlotOption = { readonly id: string; readonly label: string };
 
-type GetAvailableSlotsSuccess =
-  | {
-      readonly success: true;
-      readonly available: false;
-      readonly message: string;
-    }
-  | {
-      readonly success: true;
-      readonly available: true;
-      readonly slots: ReadonlyArray<{ readonly id: string; readonly label: string }>;
-    };
+type SlotsUnavailable = ToolSuccess<{
+  readonly available: false;
+  readonly message: string;
+}>;
 
-export type GetAvailableSlotsResult = GetAvailableSlotsSuccess | ToolFailure;
+type SlotsAvailable = ToolSuccess<{
+  readonly available: true;
+  readonly slots: ReadonlyArray<SlotOption>;
+}>;
+
+export type GetAvailableSlotsResult = SlotsUnavailable | SlotsAvailable | ToolFailure;
 
 const SLOT_LABEL_FORMAT: Intl.DateTimeFormatOptions = {
   weekday: 'long',
@@ -32,12 +29,6 @@ const SLOT_LABEL_FORMAT: Intl.DateTimeFormatOptions = {
 };
 
 const dateLabelFormatter = new Intl.DateTimeFormat('fr-FR', SLOT_LABEL_FORMAT);
-
-function logEvent(message: string, meta?: Record<string, string | undefined>): void {
-  process.stdout.write(
-    `${JSON.stringify({ level: 'info', message, ...meta, ts: new Date().toISOString() })}\n`,
-  );
-}
 
 function formatSlotLabel(slotTime: Date): string {
   return dateLabelFormatter.format(slotTime);
@@ -67,7 +58,7 @@ export async function getAvailableSlots(input: {
       .lean();
 
     if (slots.length === 0) {
-      logEvent('getAvailableSlots: no slots found', { agencyId: input.agencyId });
+      logToolEvent('getAvailableSlots: no slots found', { agencyId: input.agencyId });
       return {
         success: true,
         available: false,
@@ -75,7 +66,7 @@ export async function getAvailableSlots(input: {
       };
     }
 
-    logEvent('getAvailableSlots: slots found', {
+    logToolEvent('getAvailableSlots: slots found', {
       agencyId: input.agencyId,
       count: String(slots.length),
     });
@@ -89,7 +80,6 @@ export async function getAvailableSlots(input: {
       })),
     };
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return { success: false, error: errorMessage };
+    return { success: false, error: toToolError(error) };
   }
 }

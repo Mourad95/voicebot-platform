@@ -1,15 +1,36 @@
-import type { SectorConfig, SmsTemplatePayload } from '../types';
+import type { CallSummaryInput, SectorConfig } from '../types';
+import { formatSmsMessage } from '../types/sector.types';
 
-const formatRappel = (creneauRappel?: Date | null): string =>
-  creneauRappel
-    ? creneauRappel.toLocaleString('fr-FR', {
-        dateStyle: 'short',
-        timeStyle: 'short',
-      })
-    : 'À définir';
+const formatRappelSuffix = (creneauRappel?: Date | null): string => {
+  if (creneauRappel === undefined || creneauRappel === null) {
+    return '';
+  }
 
-const formatReceivedDate = (): string =>
-  new Date().toLocaleDateString('fr-FR', { dateStyle: 'long' });
+  const label = creneauRappel.toLocaleString('fr-FR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  });
+
+  return ` Rappel prévu le ${label}.`;
+};
+
+const formatClientName = (nom: string): string => {
+  const trimmed = nom.trim();
+  return trimmed === '' ? 'Un prospect' : trimmed;
+};
+
+const buildCallSummaryText = ({
+  nom,
+  qualificationData,
+  creneauRappel,
+}: CallSummaryInput): string => {
+  const client = formatClientName(nom);
+  const intervention = qualificationData.typeIntervention ?? 'une intervention';
+  const urgence = qualificationData.urgence ?? 'non précisée';
+  const adresse = qualificationData.adresse ?? 'non précisée';
+
+  return `${client} demande une intervention (${intervention}), urgence ${urgence}, à ${adresse}.${formatRappelSuffix(creneauRappel)}`;
+};
 
 export const artisanConfig: SectorConfig = {
   name: 'artisan',
@@ -32,24 +53,8 @@ export const artisanConfig: SectorConfig = {
       required: true,
     },
   ],
-  smsTemplate: ({
-    nom,
-    telephone,
-    qualificationData,
-    creneauRappel,
-  }: SmsTemplatePayload): string => {
-    return [
-      "🔧 Nouvelle demande d'intervention",
-      `Nom : ${nom}`,
-      `Tél : ${telephone}`,
-      `Intervention : ${qualificationData.typeIntervention ?? ''}`,
-      `Urgence : ${qualificationData.urgence ?? ''}`,
-      `Adresse : ${qualificationData.adresse ?? ''}`,
-      `Rappel : ${formatRappel(creneauRappel)}`,
-      '---',
-      `Reçu le ${formatReceivedDate()}`,
-    ].join('\n');
-  },
+  buildCallSummaryText,
+  smsTemplate: formatSmsMessage,
   defaultBusinessHours: {
     monday: { start: 8, end: 18 },
     tuesday: { start: 8, end: 18 },
