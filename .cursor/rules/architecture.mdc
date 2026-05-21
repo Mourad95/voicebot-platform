@@ -1,0 +1,70 @@
+---
+description: Apply when designing modules, structuring features, creating new services/entities/repositories, refactoring architecture, discussing SOLID/Clean Architecture/DDD, or when the task touches domain logic, use cases, or layer boundaries.
+alwaysApply: false
+---
+
+# Architecture — SOLID, Clean Architecture, DDD
+
+## SOLID
+- **S — Single Responsibility** : 1 module = 1 raison de changer. Si un fichier fait 2 choses, sépare.
+- **O — Open/Closed** : extensible sans modifier l'existant (interfaces, composition, stratégie).
+- **L — Liskov** : un sous-type doit pouvoir remplacer le parent sans casser le contrat.
+- **I — Interface Segregation** : plusieurs petites interfaces > une grosse. Pas de "fat interface".
+- **D — Dependency Inversion** : dépendre d'abstractions, pas d'implémentations. Injection systématique.
+
+Anti-patterns à refuser :
+- Classes God (>300 lignes, >10 méthodes publiques).
+- Services anémiques (uniquement getters/setters, logique dans le contrôleur).
+- Couplage fort entre couches (controller qui parle direct à Mongoose).
+
+## Clean Architecture — couches & règle de dépendance
+
+```
+src/
+├── domain/             ← entités, value objects, règles pures (ZÉRO dep externe)
+│   ├── entities/
+│   ├── value-objects/
+│   ├── events/
+│   └── ports/          ← interfaces (IUserRepository, IEmailService)
+├── application/        ← use cases, orchestration
+│   ├── use-cases/
+│   ├── dto/
+│   └── mappers/
+├── infrastructure/     ← implémentations concrètes
+│   ├── persistence/    ← mongo, postgres, prisma
+│   ├── http/           ← axios, fetch, clients externes
+│   ├── messaging/      ← SNS, SQS, sockets
+│   └── config/
+└── presentation/       ← controllers, routes, composants UI
+    ├── controllers/
+    ├── components/
+    └── middlewares/
+```
+
+Règles non négociables :
+- Dépendance TOUJOURS vers l'intérieur : presentation → application → domain.
+- Le domaine n'importe JAMAIS mongoose, axios, aws-sdk, express, react, etc.
+- Les use cases dépendent d'interfaces (ports), pas de classes concrètes.
+- L'infra implémente les ports du domaine (inversion de dépendance).
+
+## DDD — Domain-Driven Design
+
+- **Entity** : identité unique + cycle de vie (User, Order). Méthodes métier DESSUS, pas dans des services anémiques.
+- **Value Object** : immutable, comparé par valeur (Money, Email, PhoneNumber). Validation dans le constructeur. Pas de setter.
+- **Aggregate** : groupe cohérent avec une Aggregate Root. Toute mutation passe par la racine.
+- **Repository** : 1 par aggregate root. Interface dans `domain/`, implémentation dans `infrastructure/`.
+- **Domain Event** : pour communication inter-aggregates (OrderPlaced, UserRegistered).
+- **Use Case / Application Service** : orchestre, ne contient PAS de règle métier. La règle vit dans l'entity.
+- **Bounded Context** : un module = un contexte (auth, billing, notification). Pas de modèle partagé entre contextes.
+
+Exemple de méthode métier sur entity (pas dans un service) :
+```ts
+class Order {
+  cancel(reason: string): void {
+    if (this.status === 'shipped') throw new OrderAlreadyShippedError();
+    this.status = 'cancelled';
+    this.cancellationReason = reason;
+    this.addDomainEvent(new OrderCancelled(this.id));
+  }
+}
+```

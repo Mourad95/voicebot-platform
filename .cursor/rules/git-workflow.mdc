@@ -1,0 +1,44 @@
+---
+description: Apply when writing commit messages, creating branches, opening pull requests, structuring git history, or discussing version control workflow.
+alwaysApply: false
+---
+
+# Git — commits, branches, PR
+
+## Conventional Commits
+Format : `<type>(<scope>): <description>`
+
+Types :
+- `feat` : nouvelle fonctionnalité
+- `fix` : correction de bug
+- `refactor` : refacto sans changement fonctionnel
+- `perf` : optimisation perf
+- `test` : ajout/modif de tests
+- `docs` : documentation
+- `chore` : tooling, config, deps
+- `style` : formatting (pas de logique)
+- `ci` : CI/CD
+- `build` : système de build
+
+Règles :
+- Description impérative présent : "add", "fix", "remove" (pas "added", "fixes").
+- ≤72 caractères pour la première ligne.
+- Corps optionnel pour le POURQUOI (pas le QUOI).
+- Breaking change : `feat!: ...` ou footer `BREAKING CHANGE: ...`.
+- 1 commit = 1 changement logique atomique. Pas de "fix typo + add feature X".
+- Référence issue : footer `Refs #123` ou `Closes #123`.
+
+## Branches
+- `main` / `master` : prod, protégée.
+- `develop` : intégration (si gitflow).
+- `feat/...`, `fix/...`, `refactor/...`, `chore/...`
+- Rebase plutôt que merge sur feature branches. Merge commit sur main.
+- Squash si la branche a beaucoup de WIP commits.
+
+## Pull Requests
+- Titre = même format que commit conventionnel.
+- Description : contexte, changements, tests, screenshots si UI, breaking changes.
+- Checklist : tests passent, lint OK, doc à jour, pas de secret commité.
+- PR petites : <400 lignes idéalement. Au-delà, découpe.
+- Self-review avant de demander review humaine.
+- Pas de merge avec discussions ouvertes non résolues.

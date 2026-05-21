@@ -1,0 +1,53 @@
+---
+description: Apply when building anything with LLMs, RAG pipelines, agents, tools, MCP servers, prompt engineering, vector stores, embeddings, or AI-related infrastructure (Anthropic API, OpenAI, AWS Bedrock, Pinecone, Weaviate, pgvector, LangChain, etc.).
+alwaysApply: false
+---
+
+# IA / LLM — RAG, Agents, Prompts, MCP
+
+## Architecture
+- Sépare clairement : **prompt engineering** | **orchestration** | **infra modèle** | **observabilité**.
+- Prompts versionnés en git (`/prompts/*.md`), pas en dur dans le code.
+- Templates avec variables explicites, validation des inputs.
+- Toujours un fallback si le LLM échoue/timeout.
+
+## RAG
+- Chunking : taille adaptée au modèle (200-800 tokens), overlap 10-20%.
+- Embeddings : modèle cohérent entre indexation et requête. Ne change pas sans réindexer.
+- Vector store : Pinecone, Weaviate, pgvector, OpenSearch, AWS Bedrock — choix justifié par charge/coût.
+- Hybride dense + BM25 si la donnée le justifie.
+- Re-ranking (Cohere, cross-encoder) sur top-K avant injection contexte.
+- Citation des sources OBLIGATOIRE dans la réponse finale.
+- Pipeline : `ingest → chunk → embed → index → retrieve → rerank → augment → generate`.
+- Métadonnées sur chaque chunk (source, date, auteur, version) pour filtrage et citation.
+
+## Agents & MCP
+- Tools : schémas Zod/JSON Schema, descriptions claires, exemples d'usage.
+- Guardrails : budget max (tokens, tool calls, temps wall-clock) pour éviter les loops.
+- Logging structuré de chaque step : input, tool call, output, latence, coût.
+- MCP : 1 serveur = 1 domaine de capability. Ne pas tout fourrer dans un seul.
+- Optimisation context window : trim historique, summarize old turns, use cache (cf. ton MCP Smart Proxy).
+- Outils idempotents quand possible. Side effects clairement signalés dans la description.
+
+## LLM calls
+- Modèle, température, max_tokens **explicites** — jamais de valeur par défaut implicite.
+- Streaming pour UX dès que >2s de latence attendue.
+- Retry avec backoff exponentiel sur erreurs transientes (429, 503, network).
+- Timeout explicite sur chaque appel. Pas de hang infini.
+- Coût : log token usage par appel (input/output). Dashboard de monitoring.
+- Cache (Redis) sur prompts déterministes ou questions FAQ.
+- Validation de l'output : structured output (tool use, JSON mode, schema-constrained) > parsing libre.
+
+## Évaluation & qualité
+- Dataset d'éval versionné. Régressions détectées au CI (eval automatisée sur cas connus).
+- Métriques : précision, rappel, citation accuracy, hallucination rate, coût/requête, latence p50/p95.
+- Human-in-the-loop pour les cas ambigus ou critiques.
+- A/B test sur changements de prompts/modèles avant rollout.
+
+## Sécurité
+- JAMAIS d'input user direct dans un prompt système sans sanitization.
+- Prompt injection : assume que tout input externe est hostile. Validation du format de sortie.
+- PII : redact avant logs, avant envoi au modèle si possible.
+- Rate limit par user pour éviter abus / coûts explosifs.
+- Outputs jamais exécutés directement (eval, shell) sans sandbox.
+- Tokens d'API en variables d'env / Secrets Manager. Rotation périodique.

@@ -1,0 +1,35 @@
+---
+description: Next.js 15+ App Router conventions, Server/Client Components, Server Actions.
+globs: **/app/**/*.tsx, **/app/**/*.ts, **/pages/**/*.tsx, next.config.*, **/middleware.ts
+alwaysApply: false
+---
+
+# Next.js (App Router, v15+)
+
+## Server vs Client
+- Server Components par défaut. Client Components seulement si `useState`, `useEffect`, listeners, browser APIs.
+- `'use client'` en haut de fichier, le plus bas possible dans l'arbre (feuilles plutôt que branches).
+- Ne pas passer des fonctions/Date/Map en props d'un Server → Client component (sérialisation).
+
+## Routing & params
+- `await params` et `await searchParams` (changement Next 15).
+- Typed Routes activé via `next.config`.
+- `generateStaticParams` pour ISR/SSG.
+- `loading.tsx`, `error.tsx`, `not-found.tsx` colocalisés par route.
+
+## Data fetching
+- Fetching dans Server Components dès que possible, pas dans `useEffect`.
+- `fetch` natif + options (`cache`, `revalidate`, `next.tags`).
+- Server Actions pour mutations (`'use server'`).
+- Revalidation explicite (`revalidatePath`, `revalidateTag`).
+- Pas de fetch côté client si la donnée peut être pré-rendue.
+
+## Métadonnées & SEO
+- `generateMetadata` (async), pas de `<Head>` manuel.
+- Open Graph et Twitter cards systématiques sur pages publiques.
+
+## Performance
+- `next/image` obligatoire pour les images (jamais `<img>` brute).
+- `next/font` pour les polices (pas de CDN externe).
+- Streaming via `Suspense` pour les sections lentes.
+- Bundle analyzer périodique sur prod build.

@@ -1,0 +1,23 @@
+---
+description: Hard prohibitions. Always loaded.
+alwaysApply: true
+---
+
+# Interdictions globales
+
+- PAS de `any` en TypeScript (sauf justification commentée explicitement).
+- PAS de `console.log` commité (logger structuré ou rien).
+- PAS de secrets en dur, même en dev.
+- PAS de code mort ou commenté (supprime, ne commente pas).
+- PAS de fichiers >300 lignes sans raison documentée.
+- PAS de fonctions >50 lignes.
+- PAS de paramètres positionnels >3 (utilise un objet typé).
+- PAS de barrel exports (`index.ts` qui re-exporte tout).
+- PAS d'enum natifs TS (préfère `const obj as const`).
+- PAS de wrappers qui ne font que passer les props.
+- PAS de logique métier dans les controllers/composants.
+- PAS de `// @ts-ignore` sans `@ts-expect-error` + commentaire.
+- PAS de mutation directe de props/state. Immutabilité par défaut.
+- PAS de `setTimeout` pour "régler" un bug de race condition. Trouve la cause.
+- PAS de logique dans les templates au-delà d'expressions simples (Angular, React).
+- PAS de `find({})` sans pagination en BDD.

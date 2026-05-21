@@ -1,0 +1,44 @@
+---
+description: Angular 17+ standalone components, signals, OnPush, reactive forms, smart/dumb pattern.
+globs: **/*.component.ts, **/*.directive.ts, **/*.pipe.ts, **/*.guard.ts, **/*.resolver.ts, **/*.service.ts, angular.json, **/app.config.ts, **/app.routes.ts
+alwaysApply: false
+---
+
+# Angular (v17+)
+
+## Composants
+- Standalone components par défaut. Évite les NgModules sauf legacy.
+- `changeDetection: ChangeDetectionStrategy.OnPush` partout.
+- Smart components (containers) vs Dumb components (presentational) : sépare clairement.
+- 1 composant = 1 responsabilité. Décompose au-delà de 150 lignes.
+
+## State & réactivité
+- Signals (Angular 17+) > RxJS pour state local simple.
+- RxJS pour async/streams (HTTP, WebSocket, debounce, combinaisons).
+- `computed()` pour valeurs dérivées. `effect()` parcimonieux (side effects uniquement).
+- Mutations via signals (`.set()`, `.update()`) ou nouvelles refs (pas de mutation d'arrays/objects).
+
+## Templates
+- Nouvelles control flow `@if`, `@for`, `@switch` (v17+), pas les `*ngIf` legacy.
+- `trackBy` obligatoire dans les `@for`.
+- Pas de fonction appelée dans `{{ }}` (re-render à chaque CD). Utilise un `computed()` ou un pipe pur.
+- Pas de logique complexe dans les templates au-delà d'expressions simples.
+
+## Formulaires
+- Reactive forms > Template-driven forms.
+- Validators custom typés. Pas de validation magique dans les templates.
+- `FormBuilder` injecté, structure typée (`FormGroup<{ ... }>`).
+
+## Services & HTTP
+- Services `providedIn: 'root'` par défaut. Scope au component seulement si justifié.
+- HTTP via service dédié, jamais `HttpClient` direct dans un composant.
+- Interceptors pour auth, error handling, logging.
+- Pas de logique métier dans les composants. Déléguer aux services.
+
+## Routing
+- Lazy loading des routes systématique pour features (`loadComponent`, `loadChildren`).
+- Guards et resolvers pour pré-conditions.
+- `provideRouter()` avec `withComponentInputBinding()` pour passer route params en `@Input`.
+
+## Pipes
+- Pipes pures par défaut. Pipes impures uniquement si vraiment nécessaire (avec mesure perf).

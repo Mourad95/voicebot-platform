@@ -1,0 +1,36 @@
+---
+description: TypeScript strict rules and type safety conventions.
+globs: **/*.ts, **/*.tsx, **/*.mts, **/*.cts
+alwaysApply: false
+---
+
+# TypeScript — règles strictes
+
+## Config
+- `strict: true` toujours. Pas de compromis.
+- Active : `noUncheckedIndexedAccess`, `noImplicitOverride`, `exactOptionalPropertyTypes`.
+
+## Types
+- `any` INTERDIT. Utilise `unknown` + type narrowing, ou tape correctement.
+- `as` (type assertion) seulement en dernier recours. Préfère type guards (`is User`).
+- Pas de `// @ts-ignore` ni `// @ts-nocheck`. Si vraiment nécessaire : `@ts-expect-error` avec commentaire.
+- Évite les types `Function`, `Object`, `{}` (trop larges).
+- Préfère `unknown` à `any` pour les inputs externes (API, JSON).
+
+## Patterns
+- `readonly` partout où la mutation n'est pas voulue (props, DTO, value objects).
+- `as const` pour les littéraux figés.
+- Discriminated unions pour les états :
+  ```ts
+  type State = { kind: 'loading' } | { kind: 'success'; data: X } | { kind: 'error'; error: Error };
+  ```
+- `satisfies` plutôt que `as` quand on veut vérifier sans élargir.
+- Utility types : `Partial`, `Pick`, `Omit`, `Record`, `ReturnType`, `Awaited`, `NonNullable`.
+- Génériques avec contraintes explicites : `<T extends BaseEntity>` plutôt que `<T>`.
+
+## Énums
+- Pas d'`enum` natifs TS. Préfère :
+  ```ts
+  const OrderStatus = { Draft: 'draft', Paid: 'paid', Shipped: 'shipped' } as const;
+  type OrderStatus = typeof OrderStatus[keyof typeof OrderStatus];
+  ```

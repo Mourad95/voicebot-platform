@@ -1,0 +1,39 @@
+---
+description: Apply when designing schemas, writing queries, indexing, working with MongoDB/Mongoose, PostgreSQL, Prisma, migrations, or anything related to data persistence and database performance.
+alwaysApply: false
+---
+
+# Base de données
+
+## MongoDB / Mongoose
+- Schémas Mongoose stricts : `strict: 'throw'`, validators activés.
+- Index sur les champs requêtés (timestamps, foreign keys logiques, champs de recherche, champs uniques).
+- Pas de `find({})` sans pagination. Toujours `limit` + `skip`/cursor-based.
+- Projections explicites : ne ramène que les champs nécessaires (`.select()`).
+- `lean()` quand pas besoin des methods Mongoose (gain perf significatif).
+- Transactions (`session`) pour les opérations multi-documents critiques.
+- Aggregations : commente chaque stage du pipeline. Sépare en fonctions si complexe.
+- Pas de relation N+1 : utilise `populate` avec parcimonie ou `$lookup`.
+- Soft delete via flag `deletedAt`, pas de `deleteMany` direct sur données métier critiques.
+- TTL indexes pour data temporaire (sessions, OTP, cache).
+
+## PostgreSQL / Prisma
+- Migrations versionnées via `prisma migrate`. JAMAIS `db push` en prod.
+- Index sur FK et colonnes utilisées dans WHERE / ORDER BY / JOIN fréquents.
+- Transactions (`prisma.$transaction`) pour cohérence multi-tables.
+- `select` explicite pour limiter les colonnes ramenées.
+- Pas de raw SQL sauf nécessité prouvée (perf, feature non supportée).
+- Connection pool configuré selon la charge (`connection_limit` dans l'URL).
+- `prisma generate` dans le pipeline CI (pas seulement en local).
+
+## Patterns transversaux
+- Repository pattern : interface dans `domain/`, implémentation dans `infrastructure/persistence/`.
+- Pas de fuite ORM vers le domaine (pas de `Mongoose.Document` exposé hors infra).
+- Mappers explicites : DB → domain entity → DTO API.
+- Seeds versionnés pour data de dev/test.
+
+## Performance
+- EXPLAIN/explain les requêtes lentes en dev. Pas de prière.
+- Pagination cursor-based pour grands datasets (pas offset-based au-delà de quelques milliers).
+- Cache (Redis) sur lectures fréquentes immuables. Invalidation explicite à l'écriture.
+- N+1 : détecte via logs/APM. Résout via `populate` / `include` / DataLoader.

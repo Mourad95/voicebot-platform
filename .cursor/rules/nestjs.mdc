@@ -1,0 +1,49 @@
+---
+description: NestJS module structure, DI, guards, pipes, validation, repository pattern.
+globs: **/*.controller.ts, **/*.service.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.pipe.ts, **/*.filter.ts, **/*.dto.ts, **/main.ts
+alwaysApply: false
+---
+
+# NestJS
+
+## Structure
+- 1 module = 1 bounded context (auth, users, billing, notifications).
+- Structure type : `controller → service → repository`.
+- Service contient l'orchestration, pas le SQL/Mongo direct.
+- Repository pattern : abstrais Mongoose/TypeORM derrière une interface du domaine.
+
+## Injection de dépendances
+- Injection par constructeur, jamais via property injection.
+- Tokens d'injection custom pour les interfaces (DI ne marche pas sur interfaces TS pures) :
+  ```ts
+  export const USER_REPOSITORY = Symbol('USER_REPOSITORY');
+  // module : { provide: USER_REPOSITORY, useClass: MongoUserRepository }
+  // service : constructor(@Inject(USER_REPOSITORY) private repo: IUserRepository) {}
+  ```
+
+## Validation & DTOs
+- DTOs avec `class-validator` + `class-transformer`.
+- `ValidationPipe` global activé avec `whitelist: true` et `forbidNonWhitelisted: true`.
+- DTOs distincts entrée/sortie. Ne renvoie pas l'entité brute.
+- `@Transform`, `@Type` pour conversions explicites.
+
+## Sécurité
+- Guards pour l'authz (`@UseGuards(JwtAuthGuard, RolesGuard)`).
+- `@Roles()`, `@Public()` decorators custom pour signaler l'intention.
+- Helmet, CORS configurés explicitement dans `main.ts`.
+- Rate limiter (`@nestjs/throttler`) sur endpoints sensibles.
+
+## Cross-cutting
+- Interceptors pour logging, transformation de réponse, cache.
+- Pipes pour validation/transformation des params.
+- Exception filters globaux pour mapper erreurs domaine → HTTP.
+- Pas de logique dans les decorators custom : factorise dans des helpers.
+
+## Config
+- `@nestjs/config` + schema de validation (Joi/Zod).
+- Crash early si une variable d'env requise manque.
+- `ConfigService` injecté, pas de `process.env` direct dans le code métier.
+
+## Tests
+- `Test.createTestingModule` + mocks via `useValue` ou `useFactory`.
+- Pas de DB réelle en unit tests. `mongodb-memory-server` ou Testcontainers pour l'intégration.

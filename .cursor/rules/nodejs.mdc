@@ -1,0 +1,44 @@
+---
+description: Node.js, Express, SailsJS conventions for backend APIs, async patterns, validation, error handling, security.
+globs: **/server/**/*.ts, **/server/**/*.js, **/api/**/*.ts, **/routes/**/*.ts, **/middlewares/**/*.ts, **/controllers/**/*.ts, **/services/**/*.ts, **/config/sails.config.*, **/api/controllers/**, **/api/models/**
+alwaysApply: false
+---
+
+# Node.js / Express / SailsJS
+
+## Async
+- `async/await` partout. Jamais de `.then()` chaînés (sauf cas spécifiques type stream).
+- Try/catch autour des `await` qui peuvent throw. Ou wrapper `asyncHandler`.
+- Promises en parallèle quand indépendantes : `Promise.all` / `Promise.allSettled`.
+
+## Architecture
+- Pas de logique métier dans les controllers/routes. Délègue à un service/use case.
+- Validation des inputs : Zod, class-validator (Nest), Joi. JAMAIS faire confiance au client.
+- DTOs explicites en entrée ET en sortie. Ne renvoie pas l'entité brute (fuite de données).
+- Mappers entre couches (DB ↔ domain ↔ DTO API).
+
+## Erreurs
+- Classes d'erreurs métier typées (`UserNotFoundError`, `InsufficientCreditsError`).
+- Middleware d'erreur centralisé qui mappe erreur domaine → status HTTP.
+- Jamais de `throw new Error('string')` brut dans le code métier.
+- Pas de catch silencieux (`catch (e) {}`). Au minimum, log structuré.
+
+## Logging
+- Logger structuré (pino, winston). Pas de `console.log` en prod.
+- Niveaux : debug / info / warn / error / fatal.
+- Contexte sur chaque log (requestId, userId, traceId).
+- Pas d'info sensible loggée (PII, tokens, mots de passe).
+
+## Config & sécurité
+- Variables d'env via `process.env` + validation au boot (Zod schema). Crash early si manquant.
+- Pas de secrets en dur. Jamais. Même en dev.
+- CORS configuré explicitement (whitelist). Pas de `*` en prod.
+- Rate limiting (`express-rate-limit`) sur endpoints sensibles (auth, paiement).
+- Helmet pour les headers de sécu.
+- Body parser : limite de taille explicite.
+
+## SailsJS spécifique
+- Policies pour authent/authz, pas dans les controllers.
+- Services dans `api/services/` pour la logique réutilisable.
+- Pas de `sails.models.X.find()` dans les controllers — passe par un service.
+- Hooks custom pour cross-cutting concerns.

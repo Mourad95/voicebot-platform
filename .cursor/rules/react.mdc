@@ -1,0 +1,42 @@
+---
+description: React component, hooks, and state management conventions.
+globs: **/*.tsx, **/*.jsx, **/components/**/*.ts, **/hooks/**/*.ts
+alwaysApply: false
+---
+
+# React
+
+## Composants
+- Functional components UNIQUEMENT. Jamais de class component.
+- Named exports pour composants. Default export seulement pour pages Next.js (requis par le framework).
+- 1 composant = 1 fichier. Sous-composants privés acceptés s'ils restent dans le fichier.
+- Composants <150 lignes. Au-delà : décompose ou extrais des hooks.
+- Props typées via `interface` + déstructuration : `function UserCard({ user, onEdit }: UserCardProps)`.
+- Pas de `React.FC` (pose plus de problèmes qu'il n'en résout).
+- Pas de prop drilling >2 niveaux. Au-delà : Context, Zustand, ou composition.
+- Pas de logique métier dans les composants. Délègue à des hooks/services.
+
+## Hooks
+- Custom hooks : préfixe `use`, dans `/hooks` ou colocalisés.
+- 1 hook = 1 responsabilité. Pas de méga-hook fourre-tout.
+- Toujours respecter les rules of hooks (pas d'appel conditionnel, top-level only).
+- Dépendances exhaustives dans `useEffect`/`useMemo`/`useCallback`. Ne désactive pas l'eslint-rule sans raison documentée.
+- `useCallback` / `useMemo` seulement si bénéfice mesuré, pas par réflexe.
+
+## State management
+- Local state d'abord (`useState`, `useReducer`).
+- Context pour state partagé léger (thème, auth, i18n).
+- Zustand / Redux Toolkit pour state global complexe.
+- React Query / TanStack Query pour le state serveur. NE PAS mettre du state serveur dans Redux.
+- Pas de Redux pour des trucs locaux.
+
+## Styling
+- Tailwind par défaut si présent dans le projet. Pas d'inline styles.
+- MUI : utiliser le système `sx` ou `styled`, pas d'inline. Theme custom centralisé.
+- CSS Modules acceptables pour composants complexes.
+- Pas de `!important` sauf cas extrême documenté.
+
+## Patterns
+- Composition > héritage. Pas de HOC sauf cas spécifiques (rare).
+- Render props OK si vraiment nécessaire, sinon préfère hooks custom.
+- Erreurs : Error Boundaries pour les sections critiques de l'UI.

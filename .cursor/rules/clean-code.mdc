@@ -1,0 +1,26 @@
+---
+description: Apply when writing or reviewing code quality, refactoring for clarity, evaluating duplication or complexity, deciding between abstraction and inlining, or discussing DRY/KISS/YAGNI/clean code principles.
+alwaysApply: false
+---
+
+# Clean Code — DRY, KISS, YAGNI
+
+## Principes
+- **DRY** : pas de duplication de logique métier. Mais accepte une duplication temporaire plutôt qu'une mauvaise abstraction (règle de 3 : duplique 2x, abstrais à la 3e).
+- **KISS** : la solution la plus simple qui marche. Pas de design pattern "au cas où".
+- **YAGNI** : ne code pas pour des besoins hypothétiques. Code pour le besoin actuel.
+- **Boy Scout Rule** : laisse le code plus propre que tu l'as trouvé.
+
+## Fonctions
+- Pure functions dès que possible : même input → même output, pas de side effect.
+- Early return : évite l'imbrication. Guard clauses en haut de fonction.
+- Fonctions courtes : <20 lignes idéalement, max 50. Une fonction fait UNE chose.
+- Paramètres : max 3. Au-delà, utilise un objet typé.
+- Composition > Héritage (sauf pour entités DDD).
+
+## Code
+- Pas de magic numbers : extrais en constantes nommées (`const MAX_RETRIES = 3`).
+- Pas de commentaires qui paraphrasent le code. Commente le **POURQUOI**, pas le QUOI.
+- Pas de code mort : supprime, ne commente pas.
+- Immutabilité par défaut : `readonly`, `as const`, `Object.freeze` si nécessaire.
+- Variables nommées explicites > variables courtes ambiguës.

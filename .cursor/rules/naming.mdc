@@ -1,0 +1,38 @@
+---
+description: Apply when naming variables, functions, classes, files, branches, or when creating new files/folders, deciding on file structure, or reviewing naming consistency.
+alwaysApply: false
+---
+
+# Conventions de nommage
+
+## TypeScript / JavaScript
+- Variables / fonctions : `camelCase` (`getUserById`, `isLoggedIn`)
+- Classes / Types / Interfaces : `PascalCase` (`UserRepository`, `OrderStatus`)
+- Constantes : `SCREAMING_SNAKE_CASE` (`MAX_RETRIES`, `API_BASE_URL`)
+- Booléens : préfixe `is`, `has`, `can`, `should` (`isActive`, `hasPermission`)
+- Fonctions : verbe d'action (`createUser`, `fetchOrders`, `validateEmail`)
+- Pas d'interface préfixée `I` (`UserRepository` pas `IUserRepository`) SAUF si convention équipe Nest/Angular l'impose. Sois consistant dans un projet.
+- Types vs Interfaces : `interface` pour objets/contrats extensibles, `type` pour unions/intersections/utility types.
+- Énums : `PascalCase` nom et valeurs. Préfère `const obj as const` aux `enum` natifs.
+
+## Fichiers
+- React components : `PascalCase.tsx` (`UserCard.tsx`)
+- Hooks : `use-kebab-case.ts` ou `useCamelCase.ts` (choisis 1, sois consistant)
+- Utils / services : `kebab-case.ts` (`date-formatter.ts`)
+- Tests : `*.spec.ts` ou `*.test.ts` (cohérence projet)
+- Types : `*.types.ts` ou colocaliser
+- NestJS : `user.controller.ts`, `user.service.ts`, `user.module.ts`, `user.dto.ts`, `user.entity.ts`
+- Angular : `user.component.ts`, `user.service.ts`, `user.module.ts`, `user.guard.ts`
+
+## Python (IA)
+- Variables / fonctions : `snake_case`
+- Classes : `PascalCase`
+- Constantes : `SCREAMING_SNAKE_CASE`
+- Modules / fichiers : `snake_case.py`
+- Privé : préfixe `_` (`_internal_helper`)
+
+## Git / Branches
+- `feat/<scope>-<description>` (`feat/auth-2fa-totp`)
+- `fix/<scope>-<description>` (`fix/order-cancel-race-condition`)
+- `refactor/<scope>` / `chore/<scope>` / `docs/<scope>` / `test/<scope>`
+- Tout en kebab-case, pas d'underscore, pas d'accent.

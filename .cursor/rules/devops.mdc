@@ -1,0 +1,73 @@
+---
+description: Docker, CI/CD pipelines (GitLab, GitHub Actions), AWS infrastructure (Lambda, S3, API Gateway, Bedrock, IAM, CloudWatch).
+globs: Dockerfile*, docker-compose*.yml, docker-compose*.yaml, .dockerignore, .gitlab-ci.yml, .github/workflows/**, **/serverless.yml, **/serverless.ts, **/cdk.json, **/cdk/**, **/terraform/**, **/*.tf
+alwaysApply: false
+---
+
+# DevOps — Docker, CI/CD, AWS
+
+## Docker
+- Multi-stage builds : stage de build, stage de runtime minimal.
+- Image de base : `alpine` ou `distroless` quand possible.
+- User non-root (`USER node`).
+- `.dockerignore` strict : exclus `node_modules`, `.git`, `.env`, `dist`, tests, docs.
+- Layer caching : `COPY package*.json` AVANT `COPY . .` puis `npm ci`.
+- `npm ci` (pas `npm install`) en build.
+- Healthcheck défini.
+- Pas de secrets dans l'image. Variables au runtime via `-e`, secrets manager, ou build args.
+- Tag explicite des images (semver ou git-sha), pas de `latest` en prod.
+- Pin les versions de base image (`node:20.11.0-alpine`, pas `node:alpine`).
+
+## CI/CD
+Pipeline standard : `lint → typecheck → test → build → security-scan → deploy`.
+
+Règles :
+- Tests bloquants. Pas de skip sans ticket associé.
+- Cache des deps (`node_modules`, `~/.npm`, `~/.cache/...`).
+- Parallélisation des jobs indépendants.
+- Deploy : staging auto sur `develop`/`main`, prod manuel ou tag versionné.
+- Rollback documenté et testé. Stratégie blue/green ou canary si critique.
+- Secrets via GitLab/GH Variables, jamais en clair.
+- Notifications Slack/email sur échec de prod.
+- Audit log des deploys (qui, quand, quoi).
+
+## AWS
+
+### IAM
+- Principe du moindre privilège. Pas de `*` dans les policies prod.
+- Rôles IAM par service, pas un mega-rôle partagé.
+- Pas d'access keys long-terme pour humains. SSO + temporary credentials.
+
+### Lambda
+- Memory/timeout adaptés (mesurés via CloudWatch, pas devinés).
+- Cold start optimisé : init des clients (SDK, DB) HORS du handler.
+- Bundle minimal (tree-shaking, externals AWS SDK).
+- Provisioned concurrency seulement si latence critique le justifie (coût).
+- Logs structurés JSON (consommables par CloudWatch Insights).
+
+### S3
+- Buckets privés par défaut. Block Public Access activé.
+- Pre-signed URLs pour accès temporaire client.
+- Encryption at rest (SSE-S3 ou SSE-KMS).
+- Versioning + lifecycle rules pour data critique.
+- CORS configuré explicitement si accès web.
+
+### API Gateway
+- Throttling configuré.
+- WAF si exposé publiquement.
+- Auth via Lambda authorizer ou Cognito.
+- Logs activés (CloudWatch + X-Ray pour tracing).
+
+### Secrets & config
+- Secrets : Secrets Manager ou SSM Parameter Store. Pas dans env Lambda en clair.
+- Rotation automatique pour les credentials sensibles.
+
+### Observabilité
+- CloudWatch : logs structurés JSON. Alarms sur erreurs/latence.
+- X-Ray pour tracing distribué si plusieurs services.
+- Tags systématiques (env, project, owner, cost-center) pour cost allocation.
+
+### Bedrock (IA)
+- Modèles invoqués avec config explicite (model_id, max_tokens, temperature).
+- Logging des invocations (input/output tokens, coût, latence).
+- Quotas/limits surveillés. Fallback sur autre modèle si throttle.

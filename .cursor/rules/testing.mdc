@@ -1,0 +1,44 @@
+---
+description: Testing strategy, TDD on business logic, Jest/Vitest/Cypress/Playwright conventions, mocks, fixtures.
+globs: **/*.spec.ts, **/*.spec.tsx, **/*.test.ts, **/*.test.tsx, **/__tests__/**, **/e2e/**, **/cypress/**, **/playwright/**, jest.config.*, vitest.config.*
+alwaysApply: false
+---
+
+# Tests — pragmatique (TDD sur logique métier, tests sur le critique)
+
+## Stratégie
+- **TDD obligatoire** sur : logique métier domain (entités, value objects, use cases), calculs, validations complexes.
+- **Tests obligatoires** sur : endpoints API publics, flux d'authent, paiements, pipelines IA, code qui touche à l'argent ou aux données sensibles.
+- **Optionnels** : composants UI triviaux, mappers simples, config.
+
+## Pyramide
+1. **Unitaires** (Jest, Vitest) : domain pur, services, hooks. Rapides, isolés, mocks pour I/O.
+2. **Intégration** : controllers + DB en mémoire (mongodb-memory-server, testcontainers).
+3. **E2E** (Cypress, Playwright, Supertest) : parcours critiques utilisateur uniquement.
+
+## Bonnes pratiques
+- Pattern **AAA** : Arrange / Act / Assert, séparés par lignes vides.
+- 1 test = 1 comportement. Nom explicite : `it('should throw when email is already taken')`.
+- Tests indépendants : pas d'ordre, pas de state partagé. `beforeEach` clean.
+- Pas de logique dans les tests (pas de `if`, pas de boucles non triviales).
+- Mocks/stubs pour I/O (DB, HTTP, AWS). Pas de mocks pour la logique métier qu'on teste.
+- Builders/factories pour fixtures (`userFactory.build({ email: 'x@x.com' })`).
+- Teste le **comportement observable**, pas l'implémentation.
+- Coverage cible : ~80% sur domain/application, pas un objectif religieux ailleurs.
+- Tests E2E : parcours critiques uniquement (login, checkout, conversion). Pas tout l'app.
+
+## Pour React / React Native
+- React Testing Library + user-event. Pas d'Enzyme.
+- Query par rôle/label (accessible), pas par id ou className.
+- Pas de tests sur l'implémentation interne (state, méthodes).
+- Mock React Query / fetch via MSW (Mock Service Worker), pas de stubs manuels.
+
+## Pour Nest / Node
+- `Test.createTestingModule` pour unit tests, mocks via `useValue`.
+- Tests d'intégration : Supertest + DB en mémoire.
+- Tests E2E avec base éphémère, seeds explicites, cleanup post-test.
+
+## Pour Angular
+- TestBed pour intégration. Shallow rendering pour unit.
+- `HttpTestingController` pour mocker HTTP, pas de `httpClient` stubbed à la main.
+- Pas de tests qui touchent au vrai DOM via `document.querySelector`.
