@@ -1,6 +1,9 @@
+import crypto from 'node:crypto';
+
 import { Schema, model, type Document, type Model, type Types } from 'mongoose';
 
 export interface ISlot {
+  readonly uuid: string;
   readonly agencyId: Types.ObjectId;
   readonly slotTime: Date;
   readonly isAvailable: boolean;
@@ -15,6 +18,13 @@ export interface ISlotDocument extends ISlot, Document {
 
 const slotSchema = new Schema<ISlotDocument>(
   {
+    uuid: {
+      type: String,
+      required: true,
+      unique: true,
+      default: () => crypto.randomUUID(),
+      index: true,
+    },
     agencyId: {
       type: Schema.Types.ObjectId,
       ref: 'Agency',

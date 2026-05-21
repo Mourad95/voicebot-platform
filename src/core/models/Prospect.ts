@@ -1,3 +1,5 @@
+import crypto from 'node:crypto';
+
 import { Schema, model, type Document, type Model, type Types } from 'mongoose';
 
 import { LEAD_STATUSES, type LeadStatus } from '../../types/lead.types';
@@ -5,6 +7,7 @@ import { LEAD_STATUSES, type LeadStatus } from '../../types/lead.types';
 export type ProspectStatus = LeadStatus;
 
 export interface IProspect {
+  readonly uuid: string;
   readonly agencyId: Types.ObjectId;
   readonly nom?: string;
   readonly telephone?: string;
@@ -24,6 +27,13 @@ export interface IProspectDocument extends IProspect, Document {
 
 const prospectSchema = new Schema<IProspectDocument>(
   {
+    uuid: {
+      type: String,
+      required: true,
+      unique: true,
+      default: () => crypto.randomUUID(),
+      index: true,
+    },
     agencyId: {
       type: Schema.Types.ObjectId,
       ref: 'Agency',
@@ -57,6 +67,7 @@ const prospectSchema = new Schema<IProspectDocument>(
 );
 
 prospectSchema.index({ agencyId: 1, status: 1 });
+prospectSchema.index({ agencyId: 1, telephone: 1 });
 
 export const Prospect: Model<IProspectDocument> = model<IProspectDocument>(
   'Prospect',

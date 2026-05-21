@@ -1,6 +1,10 @@
 import { Router, type Request, type Response } from 'express';
 
 import { getAvailableSlots } from '../tools/getAvailableSlots';
+import {
+  manageAppointment,
+  type ManageAppointmentInput,
+} from '../tools/manageAppointment';
 import { notifyAgent } from '../tools/notifyAgent';
 import { saveProspect, type SaveProspectInput } from '../tools/saveProspect';
 import type { ToolResult } from '../tools/tool-result.types';
@@ -99,6 +103,29 @@ async function dispatchToolCall(
       }
 
       return notifyAgent({ prospectId });
+    }
+
+    case 'manage_appointment': {
+      const agencyId = asString(args.agencyId);
+      const action = asString(args.action);
+
+      if (agencyId === undefined) {
+        return { success: false, error: 'Missing agencyId in args' };
+      }
+
+      if (action === undefined) {
+        return { success: false, error: 'Missing action in args' };
+      }
+
+      const input: ManageAppointmentInput = {
+        action,
+        agencyId,
+        telephone: asString(args.telephone),
+        prospectId: asString(args.prospectId),
+        newSlotId: asString(args.newSlotId),
+      };
+
+      return manageAppointment(input);
     }
 
     default:

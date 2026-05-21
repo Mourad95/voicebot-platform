@@ -1,7 +1,12 @@
-import mongoose, { Types } from 'mongoose';
+import mongoose, { type Types } from 'mongoose';
 
 import { Prospect } from '../models/Prospect';
 import { Slot } from '../models/Slot';
+import {
+  resolveAgencyObjectId,
+  resolveSlotByUuid,
+} from '../persistence/resolve-by-uuid';
+import { isValidUuid } from '../utils/uuid';
 import { logToolEvent } from './tool-log';
 import type { ToolResult } from './tool-result.types';
 import { toToolError } from './tool-result.types';
@@ -17,10 +22,6 @@ export type SaveProspectInput = {
   readonly creneauRappel?: string;
   readonly callId?: string;
 };
-
-function isValidObjectId(value: string): boolean {
-  return Types.ObjectId.isValid(value) && new Types.ObjectId(value).toString() === value;
-}
 
 function parseCreneauRappel(value: string | undefined): Date | undefined {
   if (value === undefined || value.trim() === '') {
@@ -45,19 +46,39 @@ export async function saveProspect(
   const session = await mongoose.startSession();
 
   try {
-    if (!isValidObjectId(input.agencyId)) {
-      return { success: false, error: 'Invalid agencyId' };
+    if (!isValidUuid(input.agencyId)) {
+      return { success: false, error: 'Invalid agency UUID' };
     }
 
-    if (input.slotId !== undefined && !isValidObjectId(input.slotId)) {
-      return { success: false, error: 'Invalid slotId' };
+    if (input.slotId !== undefined && !isValidUuid(input.slotId)) {
+      return { success: false, error: 'Invalid slot UUID' };
     }
 
-    const agencyObjectId = new Types.ObjectId(input.agencyId);
+    const agencyObjectId = await resolveAgencyObjectId(input.agencyId);
+
+    if (agencyObjectId === null) {
+      return { success: false, error: 'Agency not found' };
+    }
+
     const creneauRappel = parseCreneauRappel(input.creneauRappel);
-    let prospectId = '';
+    let prospectUuid = '';
 
     await session.withTransaction(async () => {
+      let slotObjectId: Types.ObjectId | undefined;
+
+      if (input.slotId !== undefined) {
+        const slot = await resolveSlotByUuid({
+          slotUuid: input.slotId,
+          agencyObjectId,
+        });
+
+        if (slot === null) {
+          throw new Error('Slot not available or not found');
+        }
+
+        slotObjectId = slot._id;
+      }
+
       const [prospect] = await Prospect.create(
         [
           {
@@ -66,20 +87,19 @@ export async function saveProspect(
             telephone: input.telephone,
             qualificationData: toQualificationMap(input.qualificationData),
             creneauRappel,
-            slotId:
-              input.slotId !== undefined ? new Types.ObjectId(input.slotId) : undefined,
+            slotId: slotObjectId,
             callId: input.callId,
           },
         ],
         { session },
       );
 
-      prospectId = prospect._id.toString();
+      prospectUuid = prospect.uuid;
 
-      if (input.slotId !== undefined) {
+      if (input.slotId !== undefined && slotObjectId !== undefined) {
         const slot = await Slot.findOneAndUpdate(
           {
-            _id: new Types.ObjectId(input.slotId),
+            _id: slotObjectId,
             agencyId: agencyObjectId,
             isAvailable: true,
           },
@@ -98,11 +118,11 @@ export async function saveProspect(
 
     logToolEvent('saveProspect: prospect created', {
       agencyId: input.agencyId,
-      prospectId,
+      prospectId: prospectUuid,
       slotId: input.slotId,
     });
 
-    return { success: true, prospectId };
+    return { success: true, prospectId: prospectUuid };
   } catch (error: unknown) {
     return { success: false, error: toToolError(error) };
   } finally {

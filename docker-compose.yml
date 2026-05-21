@@ -1,14 +1,16 @@
+# Dev config - pas d'auth pour simplifier (replica set requis pour transactions)
 services:
   app:
     build: .
     ports:
-      - "${PORT:-3000}:3000"
+      - "${PORT:-3000}:${PORT:-3000}"
     env_file:
       - .env
     environment:
-      MONGODB_URI: mongodb://mongo:27017/voicebot
+      MONGODB_URI: mongodb://mongo:27017/voicebot?replicaSet=rs0
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     volumes:
       - .:/app
       - /app/node_modules
@@ -19,6 +21,13 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "try { rs.status().ok } catch(e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]}).ok }"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 15s
 
 volumes:
   mongo_data:

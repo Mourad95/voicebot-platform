@@ -6,6 +6,7 @@ export const LEAD_STATUSES = [
   'qualified',
   'callback_scheduled',
   'not_interested',
+  'cancelled',
   'closed',
 ] as const;
 

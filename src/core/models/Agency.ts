@@ -1,3 +1,5 @@
+import crypto from 'node:crypto';
+
 import { Schema, model, type Document, type Model, type Types } from 'mongoose';
 
 import {
@@ -7,6 +9,7 @@ import {
 } from '../../types/sector.types';
 
 export interface IAgency {
+  readonly uuid: string;
   readonly name: string;
   readonly agentName: string;
   readonly agentPhone: string;
@@ -24,6 +27,13 @@ export interface IAgencyDocument extends IAgency, Document {
 
 const agencySchema = new Schema<IAgencyDocument>(
   {
+    uuid: {
+      type: String,
+      required: true,
+      unique: true,
+      default: () => crypto.randomUUID(),
+      index: true,
+    },
     name: { type: String, required: true },
     agentName: { type: String, required: true },
     agentPhone: { type: String, required: true },

@@ -3,7 +3,8 @@ import Twilio from "twilio";
 import { getSector } from "../../sectors";
 import type { QualificationData } from "../../types/qualification.types";
 import type { IAgencyDocument } from "../models/Agency";
-import { Prospect } from "../models/Prospect";
+import { findProspectByUuid } from "../persistence/resolve-by-uuid";
+import { isValidUuid } from "../utils/uuid";
 import { logToolEvent } from "./tool-log";
 import type { ToolResult } from "./tool-result.types";
 import { toToolError } from "./tool-result.types";
@@ -53,9 +54,11 @@ export async function notifyAgent(input: {
   readonly prospectId: string;
 }): Promise<NotifyAgentResult> {
   try {
-    const prospect = await Prospect.findById(input.prospectId).populate<{
-      agencyId: IAgencyDocument;
-    }>("agencyId");
+    if (!isValidUuid(input.prospectId)) {
+      return { success: false, error: "Invalid prospect UUID" };
+    }
+
+    const prospect = await findProspectByUuid(input.prospectId);
 
     if (prospect === null) {
       return { success: false, error: "Prospect not found" };

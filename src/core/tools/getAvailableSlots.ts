@@ -1,6 +1,8 @@
-import { Types } from 'mongoose';
-
 import { Slot } from '../models/Slot';
+import {
+  resolveAgencyObjectId,
+} from '../persistence/resolve-by-uuid';
+import { isValidUuid } from '../utils/uuid';
 import { logToolEvent } from './tool-log';
 import type { ToolFailure, ToolSuccess } from './tool-result.types';
 import { toToolError } from './tool-result.types';
@@ -34,19 +36,20 @@ function formatSlotLabel(slotTime: Date): string {
   return dateLabelFormatter.format(slotTime);
 }
 
-function isValidObjectId(value: string): boolean {
-  return Types.ObjectId.isValid(value) && new Types.ObjectId(value).toString() === value;
-}
-
 export async function getAvailableSlots(input: {
   readonly agencyId: string;
 }): Promise<GetAvailableSlotsResult> {
   try {
-    if (!isValidObjectId(input.agencyId)) {
-      return { success: false, error: 'Invalid agencyId' };
+    if (!isValidUuid(input.agencyId)) {
+      return { success: false, error: 'Invalid agency UUID' };
     }
 
-    const agencyObjectId = new Types.ObjectId(input.agencyId);
+    const agencyObjectId = await resolveAgencyObjectId(input.agencyId);
+
+    if (agencyObjectId === null) {
+      return { success: false, error: 'Agency not found' };
+    }
+
     const slots = await Slot.find({
       agencyId: agencyObjectId,
       isAvailable: true,
@@ -54,7 +57,7 @@ export async function getAvailableSlots(input: {
     })
       .sort({ slotTime: 1 })
       .limit(3)
-      .select({ _id: 1, slotTime: 1 })
+      .select({ uuid: 1, slotTime: 1 })
       .lean();
 
     if (slots.length === 0) {
@@ -75,7 +78,7 @@ export async function getAvailableSlots(input: {
       success: true,
       available: true,
       slots: slots.map((slot) => ({
-        id: slot._id.toString(),
+        id: slot.uuid,
         label: formatSlotLabel(slot.slotTime),
       })),
     };
