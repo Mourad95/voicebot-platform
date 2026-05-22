@@ -71,7 +71,7 @@ seed-docker: mongo ## Seed dans le réseau Docker (hostname mongo)
 	  -v "$(CURDIR):/app" -w /app \
 	  --network "$$NETWORK" \
 	  --env-file .env \
-	  -e DATABASE_URL=$(MONGODB_URI) \
+	  -e MONGODB_URI=mongodb://$(MONGO_USER):$(MONGO_PASSWORD)@mongo:27017/voicebot?authSource=admin \
 	  -e SECTOR=$(SECTOR) \
 	  node:22-alpine \
 	  sh -c "npm ci && npm run seed"

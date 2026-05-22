@@ -62,13 +62,13 @@ async function startServer(): Promise<void> {
     });
   });
 
-  app.use('/webhook/retell', retellRawBodyParser, validateRetell, retellRouter);
   app.use(
     '/webhook/retell/events',
     retellRawBodyParser,
     validateRetell,
     retellEventsRouter,
   );
+  app.use('/webhook/retell', retellRawBodyParser, validateRetell, retellRouter);
 
   app.listen(PORT, () => {
     process.stdout.write(

@@ -17,16 +17,17 @@ cp .env.example .env
 # (Retell API key, MongoDB URI, Twilio, etc.)
 ```
 
-### 2️⃣ Installer & Démarrer MongoDB
+### 2️⃣ Démarrer MongoDB (Docker)
+
+MongoDB est géré via Docker Compose — pas besoin de l'installer localement.
+
+> ⚠️ **Si tu as `mongodb-community` installé via Homebrew**, il faut l'arrêter sinon il prend le port 27017 et empêche Docker de fonctionner :
+> ```bash
+> brew services stop mongodb-community
+> ```
 
 ```bash
-# macOS
-brew install mongodb-community
-brew services start mongodb-community
-
-# Vérifier
-mongosh
-exit
+make mongo
 ```
 
 ### 3️⃣ Installer Dépendances Node
@@ -143,7 +144,8 @@ exit
 
 | Problème | Solution |
 |----------|----------|
-| "MongoDB connection failed" | `brew services restart mongodb-community` |
+| "MongoDB connection failed" | `brew services stop mongodb-community && make mongo` |
+| "Authentication failed" (Compass) | MongoDB Homebrew tourne sur le port 27017 → `brew services stop mongodb-community` |
 | "Webhook unreachable" | Vérifiez ngrok: `ngrok http 3000` |
 | "Port 3000 already in use" | `lsof -i :3000` → kill le process |
 | "Signature verification failed" | Normal en dev (NODE_ENV=development) |

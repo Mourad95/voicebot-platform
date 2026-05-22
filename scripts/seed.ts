@@ -144,7 +144,9 @@ async function seed(): Promise<void> {
   ]);
 
   const agency = await Agency.create({
-    name: `Agence seed ${sectorConfig.displayName}`,
+    name: 'Orpi Osny GM Immo',
+    address: '42 bis Rue Aristide Briand, 95520 Osny',
+    phone: '0134251040',
     agentName: 'Agent Seed',
     agentPhone: testPhone,
     sector,

@@ -7,6 +7,7 @@ import {
 } from '../tools/manageAppointment';
 import { notifyAgent } from '../tools/notifyAgent';
 import { saveProspect, type SaveProspectInput } from '../tools/saveProspect';
+import { saveSummary } from '../tools/saveSummary';
 import type { ToolResult } from '../tools/tool-result.types';
 import { toToolError } from '../tools/tool-result.types';
 
@@ -126,6 +127,21 @@ async function dispatchToolCall(
       };
 
       return manageAppointment(input);
+    }
+
+    case 'save_summary': {
+      const prospectId = asString(args.prospectId);
+      const resume = asString(args.resume);
+
+      if (prospectId === undefined) {
+        return { success: false, error: 'Missing prospectId in args' };
+      }
+
+      if (resume === undefined) {
+        return { success: false, error: 'Missing resume in args' };
+      }
+
+      return saveSummary({ prospectId, resume });
     }
 
     default:

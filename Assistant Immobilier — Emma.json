@@ -313,7 +313,7 @@
         "edges": [
           {
             "id": "e-save-ok",
-            "destination_node_id": "node-fn-notify",
+            "destination_node_id": "node-fn-summary",
             "transition_condition": {
               "type": "prompt",
               "prompt": "success=true"
@@ -325,6 +325,33 @@
             "transition_condition": {
               "type": "prompt",
               "prompt": "Echec de l'enregistrement"
+            }
+          }
+        ]
+      },
+      {
+        "id": "node-fn-summary",
+        "name": "Résumé de l'appel",
+        "type": "function",
+        "tool_id": "tool_save_summary",
+        "tool_type": "local",
+        "wait_for_result": true,
+        "speak_during_execution": false,
+        "instruction": {
+          "type": "static_text",
+          "text": ""
+        },
+        "display_position": {
+          "x": 1250,
+          "y": 300
+        },
+        "edges": [
+          {
+            "id": "e-summary-done",
+            "destination_node_id": "node-fn-notify",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Toujours"
             }
           }
         ]
@@ -500,7 +527,7 @@
         "speak_during_execution": true,
         "instruction": {
           "type": "prompt",
-          "text": "\"Je vous remercie pour votre appel. Un conseiller vous recontactera. Belle journee !\""
+          "text": "\"Je suis desolee, je rencontre un probleme technique. Pouvez-vous rappeler l'agence au {{numero_agence}} ? Toutes nos excuses pour la gene occasionnee.\""
         },
         "display_position": {
           "x": 1400,
@@ -618,6 +645,47 @@
       {
         "execution_message_type": "static_text",
         "method": "POST",
+        "description": "Sauvegarde un resume concis de la conversation. Appeler apres save_prospect avec un resume de 2-3 phrases : projet, informations cles, prochaine etape.",
+        "type": "custom",
+        "url": "{{webhook_url}}/webhook/retell",
+        "tool_id": "tool_save_summary",
+        "args_at_root": true,
+        "execution_message_description": "",
+        "timeout_ms": 15000,
+        "speak_after_execution": false,
+        "name": "save_summary",
+        "response_variables": {
+          "success": "$.result.success"
+        },
+        "speak_during_execution": false,
+        "parameters": {
+          "type": "object",
+          "required": ["tool_name", "args"],
+          "properties": {
+            "tool_name": {
+              "type": "string",
+              "const": "save_summary"
+            },
+            "args": {
+              "type": "object",
+              "required": ["prospectId", "resume"],
+              "properties": {
+                "prospectId": {
+                  "type": "string",
+                  "const": "{{prospect_id}}"
+                },
+                "resume": {
+                  "type": "string",
+                  "description": "Resume de 2-3 phrases : type de projet, informations cles collectees, prochaine etape convenue"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "execution_message_type": "static_text",
+        "method": "POST",
         "description": "Envoie un SMS au conseiller avec la fiche prospect qualifiee. Appeler apres save_prospect.",
         "type": "custom",
         "url": "{{webhook_url}}/webhook/retell",
@@ -666,7 +734,7 @@
       "horaires_agence": "lundi au vendredi 9h-19h, samedi 10h-13h",
       "numero_transfert": "+33600000000",
       "webhook_url": "https://votre-serveur.com",
-      "agency_id": "VOTRE_AGENCY_UUID",
+      "agency_id": "0504de5e-613c-450e-bcd5-8b51bf325357",
       "caller_phone": "",
       "current_hour": "14",
       "current_day": "mercredi"

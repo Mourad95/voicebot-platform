@@ -30,6 +30,35 @@ function isPopulatedAgency(agency: unknown): agency is IAgencyDocument {
   );
 }
 
+type Priority = 'haute' | 'moyenne' | 'basse';
+
+function resolvePriority(prospect: {
+  readonly slotId?: unknown;
+  readonly creneauRappel?: Date | null;
+  readonly telephone?: string;
+  readonly qualificationData?: Map<string, string>;
+}): Priority {
+  if (prospect.slotId !== undefined && prospect.slotId !== null) {
+    return 'haute';
+  }
+
+  const hasRappel = prospect.creneauRappel !== undefined && prospect.creneauRappel !== null;
+  const hasPhone = typeof prospect.telephone === 'string' && prospect.telephone.trim() !== '';
+  const hasQualif = (prospect.qualificationData?.size ?? 0) > 0;
+
+  if (hasRappel || (hasPhone && hasQualif)) {
+    return 'moyenne';
+  }
+
+  return 'basse';
+}
+
+const PRIORITY_HEADER: Record<Priority, string> = {
+  haute:   '🔴 PRIORITÉ HAUTE — RDV confirmé, à préparer',
+  moyenne: '🟡 PRIORITÉ MOYENNE — Rappel demandé',
+  basse:   '🟢 PRIORITÉ BASSE — À recontacter',
+};
+
 function getTwilioConfig(): {
   sid: string;
   token: string;
@@ -78,13 +107,19 @@ export async function notifyAgent(input: {
       qualificationData: mapQualificationData(prospect.qualificationData),
       creneauRappel: prospect.creneauRappel ?? null,
     };
-    const text = sectorConfig.buildCallSummaryText(summaryInput);
-    const message = sectorConfig.smsTemplate({
-      nom: prospectNom,
-      numero: prospectNumero,
-      text,
-      status: "important",
-    });
+    const priority = resolvePriority(prospect);
+    const resumeSection = prospect.resume !== undefined && prospect.resume !== ''
+      ? `📋 Résumé de l'appel :\n${prospect.resume}`
+      : sectorConfig.buildCallSummaryText(summaryInput);
+
+    const message = [
+      PRIORITY_HEADER[priority],
+      '',
+      `👤 ${prospectNom || 'Prospect inconnu'}`,
+      `📞 ${prospectNumero || 'Numéro non renseigné'}`,
+      '',
+      resumeSection,
+    ].join('\n');
 
     const twilioConfig = getTwilioConfig();
     if (twilioConfig === null) {

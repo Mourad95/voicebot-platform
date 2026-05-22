@@ -17,6 +17,7 @@ export interface IProspect {
   readonly status: ProspectStatus;
   readonly callId?: string;
   readonly rawTranscript?: string;
+  readonly resume?: string;
 }
 
 export interface IProspectDocument extends IProspect, Document {
@@ -59,6 +60,7 @@ const prospectSchema = new Schema<IProspectDocument>(
     },
     callId: { type: String, required: false },
     rawTranscript: { type: String, required: false },
+    resume: { type: String, required: false },
   },
   {
     timestamps: true,

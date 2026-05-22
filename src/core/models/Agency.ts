@@ -11,6 +11,8 @@ import {
 export interface IAgency {
   readonly uuid: string;
   readonly name: string;
+  readonly address?: string;
+  readonly phone?: string;
   readonly agentName: string;
   readonly agentPhone: string;
   readonly retellAgentId?: string;
@@ -35,6 +37,8 @@ const agencySchema = new Schema<IAgencyDocument>(
       index: true,
     },
     name: { type: String, required: true },
+    address: { type: String, required: false },
+    phone: { type: String, required: false },
     agentName: { type: String, required: true },
     agentPhone: { type: String, required: true },
     retellAgentId: { type: String, required: false },
