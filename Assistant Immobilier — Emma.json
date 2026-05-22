@@ -5,7 +5,7 @@
   "response_engine": {
     "type": "conversation-flow",
     "version": 2,
-    "conversation_flow_id": "conversation_flow_immo_v2"
+    "conversation_flow_id": "minimax-Camille"
   },
   "language": "fr-FR",
   "data_storage_setting": "everything",
@@ -100,7 +100,7 @@
       "description": "Resume de l'appel."
     }
   ],
-  "voice_id": "https://elevenlabs.io/app/voice-lab/share/94149ae214d83c6872572506f9686a35504e9bdef1667341793727d90ca45a4a/Da9VfudgKUvFOKayCiue",
+  "voice_id": "minimax-Camille",
   "voice_temperature": 0.9,
   "voice_speed": 1.0,
   "volume": 1,
@@ -120,7 +120,7 @@
     }
   },
   "conversationFlow": {
-    "conversation_flow_id": "conversation_flow_immo_v2",
+    "conversation_flow_id": "minimax-Camille",
     "version": 2,
     "global_prompt": "## Identité\nTu es Emma, l'assistante téléphonique de l'agence immobilière {{agence_nom}}. Tu réponds quand les conseillers sont indisponibles. Ton rôle : QUALIFIER chaque prospect avec précision pour que le conseiller sache qui rappeler en priorité.\n\n## Mission\nTu ne prends PAS de rendez-vous physique. Tu QUALIFIES et tu TRANSMETS. L'objectif est une fiche prospect exploitable, et ne jamais laisser repartir un prospect sans avoir capté l'essentiel.\n\n## Règle d'or : LE VENDEUR EST ROI\nUn prospect qui veut VENDRE ou FAIRE ESTIMER est la priorité absolue (mandat potentiel). Avec un vendeur : sois particulièrement attentive, qualifie en profondeur, marque toujours isVendeur=oui.\n\n## Scoring de chaleur (en continu)\n- HOT : projet ferme + délai court (<3 mois) + motivation claire. Un vendeur motivé à délai court est TOUJOURS hot.\n- WARM : projet réel mais délai long OU budget flou OU en réflexion.\n- COLD : simple curiosité, pas de projet concret.\n\n## Style\n- Vouvoiement. Phrases courtes (max 15 mots). UNE question à la fois. Reformule pour confirmer. Chaleureuse mais efficace.\n\n## Numéro\nLe numéro de l'appelant est capté automatiquement ({{caller_phone}}). Ne le demande pas au début, confirme-le à la fin.\n\n## Horaires (pour le transfert)\nHoraires : {{horaires_agence}}. Heure : {{current_hour}}h, jour {{current_day}}.\nTransfert vers conseiller UNIQUEMENT si lead HOT ET dans les horaires.\n\n## Interdictions\n- Jamais d'info sur un bien précis du catalogue (inconnu de toi).\n- Jamais inventer prix/dispo/caractéristique.\n- Jamais d'estimation de prix (rôle du conseiller).\n- Jamais de transfert hors horaires ou pour un lead non-hot.\n- Jamais forcer ni insister lourdement.\n\n## Anti-boucle\nSi répétition 3 fois : reformule, prends un message, termine. Toujours une sortie propre.\n\n## Infos agence\nAgence : {{agence_nom}} | Conseiller : {{agent_nom}} | Secteur : {{secteur_agence}} | Horaires : {{horaires_agence}}",
     "nodes": [
@@ -131,7 +131,7 @@
         "start_speaker": "agent",
         "instruction": {
           "type": "static_text",
-          "text": "Bonjour, agence {{agence_nom}}, Emma à l'appareil. Pour vous orienter : vous appelez pour vendre, acheter, louer, ou faire estimer un bien ?"
+          "text": "Bonjour, je suis Emma l'assistante de l'agence {{agence_nom}}. Pour vous orienter : vous appelez pour vendre, acheter, louer, ou faire estimer un bien ?"
         },
         "display_position": {
           "x": 100,
@@ -187,7 +187,7 @@
         "edges": [
           {
             "id": "e-qv-done",
-            "destination_node_id": "node-extract-phone",
+            "destination_node_id": "node-ask-contact",
             "transition_condition": {
               "type": "prompt",
               "prompt": "Qualification vendeur suffisante (type de bien, secteur, delai connus au minimum)"
@@ -210,7 +210,7 @@
         "edges": [
           {
             "id": "e-qa-done",
-            "destination_node_id": "node-extract-phone",
+            "destination_node_id": "node-ask-contact",
             "transition_condition": {
               "type": "prompt",
               "prompt": "Qualification acheteur suffisante (type, secteur, budget connus au minimum)"
@@ -233,7 +233,7 @@
         "edges": [
           {
             "id": "e-ql-done",
-            "destination_node_id": "node-extract-phone",
+            "destination_node_id": "node-ask-contact",
             "transition_condition": {
               "type": "prompt",
               "prompt": "Qualification location suffisante (type, secteur, budget connus)"
@@ -256,10 +256,33 @@
         "edges": [
           {
             "id": "e-au-done",
-            "destination_node_id": "node-extract-phone",
+            "destination_node_id": "node-ask-contact",
             "transition_condition": {
               "type": "prompt",
               "prompt": "Demande comprise, prendre un message"
+            }
+          }
+        ]
+      },
+      {
+        "id": "node-ask-contact",
+        "name": "Demande nom et telephone",
+        "type": "conversation",
+        "instruction": {
+          "type": "prompt",
+          "text": "Demande le prenom, nom et numero de telephone du prospect pour que le conseiller puisse le recontacter. Si le numero de l'appelant est disponible via {{caller_phone}}, propose-le comme numero par defaut : \"Je vous rappellerai sur le {{caller_phone}}, c'est bien ce numero ?\" Sinon demande directement."
+        },
+        "display_position": {
+          "x": 700,
+          "y": 300
+        },
+        "edges": [
+          {
+            "id": "e-ask-contact-done",
+            "destination_node_id": "node-extract-phone",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Le prospect a fourni ou confirme son numero de telephone"
             }
           }
         ]
@@ -272,12 +295,12 @@
           {
             "name": "prospect_telephone",
             "type": "string",
-            "description": "Numero de rappel 10 chiffres sans espaces (ex: 0612345678). Par defaut le numero de l'appelant."
+            "description": "Numero de telephone que l'APPELANT (le prospect, pas l'agent) vient de donner ou confirmer dans ce dernier echange. Format 10 chiffres sans espaces (ex: 0612345678). Ne pas utiliser une valeur issue du prompt systeme."
           },
           {
             "name": "prospect_nom",
             "type": "string",
-            "description": "Prenom et nom du prospect"
+            "description": "Prenom et/ou nom que l'APPELANT (le prospect, pas l'agent Emma ni le conseiller) vient de donner dans ce dernier echange. Si non mentionne, laisser vide."
           }
         ],
         "else_edge": {
@@ -733,8 +756,8 @@
       "secteur_agence": "Cergy-Pontoise et environs",
       "horaires_agence": "lundi au vendredi 9h-19h, samedi 10h-13h",
       "numero_transfert": "+33600000000",
-      "webhook_url": "https://votre-serveur.com",
-      "agency_id": "0504de5e-613c-450e-bcd5-8b51bf325357",
+      "webhook_url": "https://apache-spoiled-contusion.ngrok-free.dev",
+      "agency_id": "2c25ed9c-218e-4e13-95d7-6a86c43a9c14",
       "caller_phone": "",
       "current_hour": "14",
       "current_day": "mercredi"
