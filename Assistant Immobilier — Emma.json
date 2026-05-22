@@ -1,54 +1,64 @@
 {
   "agent_id": "",
   "channel": "voice",
-  "last_modification_timestamp": 1779374400000,
-  "agent_name": "Assistant Immobilier — Emma",
+  "agent_name": "Assistant Immobilier — Emma v2",
   "response_engine": {
     "type": "conversation-flow",
     "version": 2,
-    "conversation_flow_id": "conversation_flow_immo_002"
+    "conversation_flow_id": "conversation_flow_immo_v2"
   },
   "language": "fr-FR",
   "data_storage_setting": "everything",
-  "opt_in_signed_url": false,
   "version": 2,
-  "base_version": 1,
-  "assigned_tags": [],
   "is_published": false,
   "post_call_analysis_model": "gpt-4.1",
   "pii_config": {
     "mode": "post_call",
     "categories": []
   },
-  "handbook_config": {
-    "echo_verification": false,
-    "speech_normalization": true,
-    "default_personality": true,
-    "scope_boundaries": true,
-    "natural_filler_words": true,
-    "nato_phonetic_alphabet": false,
-    "high_empathy": true,
-    "ai_disclosure": true,
-    "smart_matching": false
-  },
   "post_call_analysis_data": [
     {
+      "name": "lead_type",
+      "description": "Type de projet.",
+      "type": "enum",
+      "choices": [
+        "vente",
+        "achat",
+        "location",
+        "estimation",
+        "autre",
+        "inconnu"
+      ],
+      "required": false
+    },
+    {
       "name": "lead_score",
-      "description": "Score du prospect.",
+      "description": "Chaleur du lead.",
       "type": "enum",
       "choices": ["hot", "warm", "cold", "non_qualifie"],
       "required": false
     },
     {
-      "name": "projet_type",
-      "description": "Type de projet immobilier.",
-      "type": "enum",
-      "choices": ["achat", "vente", "location", "estimation", "investissement", "inconnu"],
+      "name": "is_vendeur",
+      "description": "True si vente/estimation (prioritaire).",
+      "type": "boolean",
       "required": false
     },
     {
-      "name": "budget",
-      "description": "Budget mentionne.",
+      "name": "type_bien",
+      "description": "Type de bien.",
+      "type": "string",
+      "required": false
+    },
+    {
+      "name": "secteur",
+      "description": "Secteur geographique.",
+      "type": "string",
+      "required": false
+    },
+    {
+      "name": "budget_ou_prix",
+      "description": "Budget (achat/loc) ou prix espere (vente).",
       "type": "string",
       "required": false
     },
@@ -56,14 +66,32 @@
       "name": "delai",
       "description": "Delai du projet.",
       "type": "enum",
-      "choices": ["urgent", "moins_3_mois", "3_6_mois", "plus_6_mois", "inconnu"],
+      "choices": [
+        "urgent",
+        "moins_3_mois",
+        "3_6_mois",
+        "plus_6_mois",
+        "inconnu"
+      ],
+      "required": false
+    },
+    {
+      "name": "motivation",
+      "description": "Raison du projet.",
+      "type": "string",
+      "required": false
+    },
+    {
+      "name": "annonce_ref",
+      "description": "Reference annonce si bien precis.",
+      "type": "string",
       "required": false
     },
     {
       "name": "action_prise",
-      "description": "Action realisee en fin d'appel.",
+      "description": "Action finale.",
       "type": "enum",
-      "choices": ["rdv_pris", "transfert_humain", "rappel_demande", "info_envoyee", "aucune"],
+      "choices": ["transfert", "rappel_demande", "message_pris", "aucune"],
       "required": false
     },
     {
@@ -72,920 +100,411 @@
       "description": "Resume de l'appel."
     }
   ],
-  "voice_id": "eleven_turbo_v2_5",
+  "voice_id": "https://elevenlabs.io/app/voice-lab/share/94149ae214d83c6872572506f9686a35504e9bdef1667341793727d90ca45a4a/Da9VfudgKUvFOKayCiue",
   "voice_temperature": 0.9,
-  "voice_speed": 1,
+  "voice_speed": 1.0,
   "volume": 1,
-  "max_call_duration_ms": 420000,
-  "interruption_sensitivity": 1,
+  "max_call_duration_ms": 360000,
+  "interruption_sensitivity": 0.9,
+  "responsiveness": 1,
   "normalize_for_speech": true,
-  "begin_message_delay_ms": 800,
+  "begin_message_delay_ms": 500,
+  "enable_backchannel": true,
+  "backchannel_frequency": 0.8,
+  "backchannel_words": ["d'accord", "tres bien", "je vois", "oui", "parfait"],
+  "denoising_mode": "noise-cancellation",
   "voicemail_option": {
     "action": {
       "type": "static_text",
-      "text": "Bonjour, vous avez appele l'agence {{agence_nom}}. Laissez-nous un message avec votre nom et numero, nous vous rappellerons."
+      "text": "Bonjour, vous avez appele l'agence {{agence_nom}}. Laissez votre nom et votre numero, un conseiller vous rappellera rapidement."
     }
   },
-  "allow_user_dtmf": false,
-  "user_dtmf_options": {},
-  "denoising_mode": "noise-cancellation",
   "conversationFlow": {
-    "conversation_flow_id": "conversation_flow_immo_002",
+    "conversation_flow_id": "conversation_flow_immo_v2",
     "version": 2,
-    "global_prompt": "## Role\nTu es Emma, assistante de l'agence {{agence_nom}}. Ton objectif principal est de QUALIFIER les prospects, pas juste de prendre des RDV.\n\n## Objectif prioritaire : QUALIFICATION\nChaque appel doit permettre de collecter :\n1. Type de projet (achat/vente/location)\n2. Budget approximatif\n3. Delai (urgent = moins d'1 mois, court = 1-3 mois, moyen = 3-6 mois, long = plus)\n4. Secteur geographique\n5. Type de bien (appart, maison, terrain)\n\n## Scoring des leads\nCalcule mentalement le score pendant la conversation :\n- HOT : budget defini + delai < 3 mois + projet clair + motive\n- WARM : projet clair mais delai > 3 mois OU budget flou\n- COLD : pas de projet precis, juste curieux, \"je regarde\"\n\n## Gestion des horaires (CRITIQUE)\nVariables disponibles : {{current_hour}}, {{current_day}}\nHoraires agence : {{horaires_agence}}\n\nSi le prospect demande a parler a quelqu'un :\n1. Verifie si on est dans les horaires (compare current_hour/current_day avec horaires_agence)\n2. Si OUI : \"Souhaitez-vous que je vous passe un conseiller maintenant ?\"\n3. Si NON : \"L'agence est fermee actuellement. Je peux enregistrer votre demande pour un rappel des demain matin. Cela vous convient ?\"\n\nNe JAMAIS proposer de transfert hors horaires.\n\n## Actions selon le score\n- HOT + veut RDV : proposer creneaux via get_available_slots\n- HOT + veut rappel : save_prospect + notify_agent (SMS prioritaire)\n- HOT + veut transfert + horaires ok : transferer\n- HOT + veut transfert + hors horaires : save_prospect + notify_agent\n- WARM : save_prospect (enregistrer pour suivi)\n- COLD : juste terminer poliment, pas d'enregistrement sauf si le prospect le demande\n\n## Style\n- Vouvoiement, phrases courtes (max 15 mots)\n- UNE question a la fois\n- Reformuler pour confirmer les infos cles\n- Ton professionnel mais chaleureux\n\n## Interdictions\n- Ne JAMAIS inventer de disponibilite\n- Ne JAMAIS confirmer un RDV sans que save_prospect ait reussi\n- Ne JAMAIS proposer de transfert hors horaires\n- Ne JAMAIS forcer un prospect a prendre RDV\n\n## Regles anti-boucle\n- Max 2 appels a get_available_slots\n- Si outil echoue 2 fois : s'excuser, proposer rappel\n- Si prospect repete 3 fois : proposer rappel ou fin\n- Toujours avoir une sortie (rappel ou fin polie)\n\n## Infos agence\n- Agence : {{agence_nom}}\n- Agent : {{agent_nom}}\n- Adresse : {{adresse_agence}}\n- Horaires : {{horaires_agence}}\n",
+    "global_prompt": "## Identité\nTu es Emma, l'assistante téléphonique de l'agence immobilière {{agence_nom}}. Tu réponds quand les conseillers sont indisponibles. Ton rôle : QUALIFIER chaque prospect avec précision pour que le conseiller sache qui rappeler en priorité.\n\n## Mission\nTu ne prends PAS de rendez-vous physique. Tu QUALIFIES et tu TRANSMETS. L'objectif est une fiche prospect exploitable, et ne jamais laisser repartir un prospect sans avoir capté l'essentiel.\n\n## Règle d'or : LE VENDEUR EST ROI\nUn prospect qui veut VENDRE ou FAIRE ESTIMER est la priorité absolue (mandat potentiel). Avec un vendeur : sois particulièrement attentive, qualifie en profondeur, marque toujours isVendeur=oui.\n\n## Scoring de chaleur (en continu)\n- HOT : projet ferme + délai court (<3 mois) + motivation claire. Un vendeur motivé à délai court est TOUJOURS hot.\n- WARM : projet réel mais délai long OU budget flou OU en réflexion.\n- COLD : simple curiosité, pas de projet concret.\n\n## Style\n- Vouvoiement. Phrases courtes (max 15 mots). UNE question à la fois. Reformule pour confirmer. Chaleureuse mais efficace.\n\n## Numéro\nLe numéro de l'appelant est capté automatiquement ({{caller_phone}}). Ne le demande pas au début, confirme-le à la fin.\n\n## Horaires (pour le transfert)\nHoraires : {{horaires_agence}}. Heure : {{current_hour}}h, jour {{current_day}}.\nTransfert vers conseiller UNIQUEMENT si lead HOT ET dans les horaires.\n\n## Interdictions\n- Jamais d'info sur un bien précis du catalogue (inconnu de toi).\n- Jamais inventer prix/dispo/caractéristique.\n- Jamais d'estimation de prix (rôle du conseiller).\n- Jamais de transfert hors horaires ou pour un lead non-hot.\n- Jamais forcer ni insister lourdement.\n\n## Anti-boucle\nSi répétition 3 fois : reformule, prends un message, termine. Toujours une sortie propre.\n\n## Infos agence\nAgence : {{agence_nom}} | Conseiller : {{agent_nom}} | Secteur : {{secteur_agence}} | Horaires : {{horaires_agence}}",
     "nodes": [
       {
+        "id": "node-welcome",
+        "name": "Aiguillage direct",
+        "type": "conversation",
+        "start_speaker": "agent",
         "instruction": {
           "type": "static_text",
-          "text": "Bonjour, agence {{agence_nom}}, Emma a l'appareil. Comment puis-je vous aider ?"
+          "text": "Bonjour, agence {{agence_nom}}, Emma à l'appareil. Pour vous orienter : vous appelez pour vendre, acheter, louer, ou faire estimer un bien ?"
         },
-        "name": "Accueil",
-        "edges": [
-          {
-            "destination_node_id": "node-collect-phone",
-            "id": "edge-welcome-to-phone",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Le prospect repond"
-            }
-          }
-        ],
-        "start_speaker": "agent",
-        "id": "node-welcome",
-        "type": "conversation",
         "display_position": {
           "x": 100,
-          "y": 100
-        }
-      },
-      {
-        "name": "Collecte Telephone",
+          "y": 300
+        },
         "edges": [
           {
-            "destination_node_id": "node-extract-phone",
-            "id": "edge-phone-ok",
+            "id": "e-w-vendeur",
+            "destination_node_id": "node-qualif-vendeur",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "Numero de portable obtenu (10 chiffres)"
+              "prompt": "Le prospect veut VENDRE ou FAIRE ESTIMER un bien"
             }
           },
           {
-            "destination_node_id": "node-qualification",
-            "id": "edge-phone-refused",
+            "id": "e-w-acheteur",
+            "destination_node_id": "node-qualif-acheteur",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "Le prospect refuse de donner son numero apres 2 demandes — continuer sans"
+              "prompt": "Le prospect veut ACHETER, ou appelle au sujet d'une annonce precise"
+            }
+          },
+          {
+            "id": "e-w-location",
+            "destination_node_id": "node-qualif-location",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Le prospect cherche a LOUER un bien"
+            }
+          },
+          {
+            "id": "e-w-autre",
+            "destination_node_id": "node-autre",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Autre demande (renseignement administratif, SAV, ne sait pas)"
             }
           }
-        ],
-        "id": "node-collect-phone",
-        "type": "conversation",
-        "display_position": {
-          "x": 400,
-          "y": 100
-        },
-        "instruction": {
-          "type": "prompt",
-          "text": "Demande le numero de portable : \"Pour mieux vous aider, puis-je avoir votre numero de portable ?\" Si refuse apres 2 demandes, continuer sans (on qualifiera quand meme)."
-        }
+        ]
       },
       {
+        "id": "node-qualif-vendeur",
+        "name": "Qualif VENDEUR (prioritaire)",
+        "type": "conversation",
+        "instruction": {
+          "type": "prompt",
+          "text": "PROSPECT PRIORITAIRE (vendeur potentiel = mandat). Sois chaleureuse et qualifie en profondeur, UNE question a la fois, dans cet ordre :\n1. \"Quel type de bien souhaitez-vous vendre ?\" (appartement, maison, terrain...)\n2. \"Dans quel secteur se situe-t-il ?\"\n3. \"Quelle surface environ ?\"\n4. \"Avez-vous une idee du prix souhaite ?\" (ne JAMAIS donner d'estimation toi-meme)\n5. \"Dans quel delai envisagez-vous de vendre ?\"\n6. \"Qu'est-ce qui motive cette vente ?\" (mutation, succession, agrandissement...)\n7. \"Avez-vous deja fait estimer ce bien ailleurs ?\"\nCalcule le leadScore : HOT si delai court (<3 mois) et motive. Marque isVendeur=oui. Une fois l'essentiel obtenu, passe a la suite."
+        },
+        "display_position": {
+          "x": 450,
+          "y": 100
+        },
+        "edges": [
+          {
+            "id": "e-qv-done",
+            "destination_node_id": "node-extract-phone",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Qualification vendeur suffisante (type de bien, secteur, delai connus au minimum)"
+            }
+          }
+        ]
+      },
+      {
+        "id": "node-qualif-acheteur",
+        "name": "Qualif ACHETEUR",
+        "type": "conversation",
+        "instruction": {
+          "type": "prompt",
+          "text": "Qualifie l'acheteur, UNE question a la fois :\n1. Si le prospect mentionne une annonce precise, note la reference (annonceRef) et confirme que c'est bien un achat.\n2. \"Quel type de bien recherchez-vous ?\"\n3. \"Dans quel secteur ?\"\n4. \"Quel est votre budget approximatif ?\"\n5. \"Dans quel delai souhaitez-vous acheter ?\"\n6. \"Ou en etes-vous cote financement ?\" (accord de principe banque, en cours, pas commence)\nCalcule leadScore : HOT si budget defini + delai <3 mois + financement engage. isVendeur=non. Une fois l'essentiel obtenu, passe a la suite."
+        },
+        "display_position": {
+          "x": 450,
+          "y": 300
+        },
+        "edges": [
+          {
+            "id": "e-qa-done",
+            "destination_node_id": "node-extract-phone",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Qualification acheteur suffisante (type, secteur, budget connus au minimum)"
+            }
+          }
+        ]
+      },
+      {
+        "id": "node-qualif-location",
+        "name": "Qualif LOCATION",
+        "type": "conversation",
+        "instruction": {
+          "type": "prompt",
+          "text": "Qualifie le candidat locataire, UNE question a la fois :\n1. \"Quel type de bien cherchez-vous a louer ?\"\n2. \"Dans quel secteur ?\"\n3. \"Quel budget loyer mensuel maximum ?\"\n4. \"Pour quelle date d'emmenagement ?\"\nCalcule leadScore : HOT si date proche (<1 mois) et budget realiste. isVendeur=non. Puis passe a la suite."
+        },
+        "display_position": {
+          "x": 450,
+          "y": 500
+        },
+        "edges": [
+          {
+            "id": "e-ql-done",
+            "destination_node_id": "node-extract-phone",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Qualification location suffisante (type, secteur, budget connus)"
+            }
+          }
+        ]
+      },
+      {
+        "id": "node-autre",
+        "name": "Autre demande",
+        "type": "conversation",
+        "instruction": {
+          "type": "prompt",
+          "text": "Demande poliment de preciser la demande en une phrase. Si c'est un sujet que seul un conseiller peut traiter, explique que tu vas prendre un message pour rappel. leadType=autre, leadScore=cold. Puis passe a la suite pour enregistrer le message."
+        },
+        "display_position": {
+          "x": 450,
+          "y": 700
+        },
+        "edges": [
+          {
+            "id": "e-au-done",
+            "destination_node_id": "node-extract-phone",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Demande comprise, prendre un message"
+            }
+          }
+        ]
+      },
+      {
+        "id": "node-extract-phone",
+        "name": "Confirmation numero",
+        "type": "extract_dynamic_variables",
         "variables": [
           {
             "name": "prospect_telephone",
             "type": "string",
-            "description": "Numero 10 chiffres sans espaces (ex: 0612345678)"
-          }
-        ],
-        "else_edge": {
-          "destination_node_id": "node-fn-check",
-          "id": "edge-extract-to-check",
-          "transition_condition": {
-            "type": "prompt",
-            "prompt": "Else"
-          }
-        },
-        "name": "Extraction Tel",
-        "edges": [],
-        "id": "node-extract-phone",
-        "type": "extract_dynamic_variables",
-        "display_position": {
-          "x": 700,
-          "y": 100
-        }
-      },
-      {
-        "tool_id": "tool_check_prospect",
-        "instruction": {
-          "type": "static_text",
-          "text": "Un instant, je consulte votre dossier."
-        },
-        "name": "Verification dossier",
-        "edges": [
-          {
-            "destination_node_id": "node-existing",
-            "id": "edge-check-found",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "found=true, prospect avec RDV existant"
-            }
-          },
-          {
-            "destination_node_id": "node-qualification",
-            "id": "edge-check-new",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "found=false OU erreur — nouveau prospect"
-            }
-          }
-        ],
-        "id": "node-fn-check",
-        "type": "function",
-        "tool_type": "local",
-        "speak_during_execution": true,
-        "display_position": {
-          "x": 1000,
-          "y": 100
-        },
-        "wait_for_result": true
-      },
-      {
-        "name": "Prospect existant",
-        "edges": [
-          {
-            "destination_node_id": "node-modification",
-            "id": "edge-existing-modify",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Veut modifier son RDV"
-            }
-          },
-          {
-            "destination_node_id": "node-annulation",
-            "id": "edge-existing-cancel",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Veut annuler son RDV"
-            }
-          },
-          {
-            "destination_node_id": "node-qualification",
-            "id": "edge-existing-other",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Autre demande ou confirme son RDV"
-            }
-          }
-        ],
-        "id": "node-existing",
-        "type": "conversation",
-        "display_position": {
-          "x": 1300,
-          "y": -100
-        },
-        "instruction": {
-          "type": "prompt",
-          "text": "Annonce le RDV : \"Je vois que vous avez un rendez-vous prevu le {{slot_time}}. Souhaitez-vous le confirmer, le modifier ou l'annuler ?\""
-        }
-      },
-      {
-        "name": "QUALIFICATION",
-        "edges": [
-          {
-            "destination_node_id": "node-extract-qualif",
-            "id": "edge-qualif-done",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Qualification complete : projet, budget, delai et secteur connus (ou prospect refuse de repondre)"
-            }
-          }
-        ],
-        "id": "node-qualification",
-        "type": "conversation",
-        "display_position": {
-          "x": 1300,
-          "y": 100
-        },
-        "instruction": {
-          "type": "prompt",
-          "text": "C'est LE noeud le plus important. Qualifier le prospect avec ces questions, UNE A LA FOIS :\n\n1. \"Quel est votre projet ? Achat, vente ou location ?\"\n2. \"Quel type de bien recherchez-vous ?\" (appart, maison...)\n3. \"Avez-vous un budget en tete ?\" (accepter \"je ne sais pas\")\n4. \"Dans quel delai souhaitez-vous concretiser ?\" (urgent, quelques mois, pas presse)\n5. \"Quel secteur geographique vous interesse ?\"\n\nSi le prospect est vague sur tout : c'est un COLD lead.\nSi budget + delai < 3 mois + projet clair : c'est un HOT lead.\nSinon : WARM lead.\n\nNe pas forcer les reponses, noter ce qu'on obtient."
-        }
-      },
-      {
-        "variables": [
-          {
-            "name": "prospect_prenom",
-            "type": "string",
-            "description": "Prenom si obtenu"
+            "description": "Numero de rappel 10 chiffres sans espaces (ex: 0612345678). Par defaut le numero de l'appelant."
           },
           {
             "name": "prospect_nom",
             "type": "string",
-            "description": "Nom si obtenu"
-          },
-          {
-            "name": "projet_type",
-            "type": "enum",
-            "choices": ["achat", "vente", "location", "estimation", "inconnu"],
-            "description": "Type de projet"
-          },
-          {
-            "name": "budget",
-            "type": "string",
-            "description": "Budget mentionne ou 'non_precise'"
-          },
-          {
-            "name": "delai",
-            "type": "enum",
-            "choices": ["urgent", "moins_3_mois", "3_6_mois", "plus_6_mois", "inconnu"],
-            "description": "Delai du projet"
-          },
-          {
-            "name": "secteur",
-            "type": "string",
-            "description": "Secteur geographique"
-          },
-          {
-            "name": "type_bien",
-            "type": "string",
-            "description": "Type de bien (appart, maison, etc.)"
-          },
-          {
-            "name": "lead_score",
-            "type": "enum",
-            "choices": ["hot", "warm", "cold"],
-            "description": "Score calcule : hot si budget+delai<3mois+projet, warm si projet mais flou, cold si curieux"
+            "description": "Prenom et nom du prospect"
           }
         ],
         "else_edge": {
-          "destination_node_id": "node-decision",
-          "id": "edge-qualif-to-decision",
+          "destination_node_id": "node-fn-save",
+          "id": "e-extract-else",
           "transition_condition": {
             "type": "prompt",
             "prompt": "Else"
           }
         },
-        "name": "Extraction Qualif",
-        "edges": [],
-        "id": "node-extract-qualif",
-        "type": "extract_dynamic_variables",
         "display_position": {
-          "x": 1600,
-          "y": 100
-        }
+          "x": 800,
+          "y": 300
+        },
+        "edges": []
       },
       {
-        "else_edge": {
-          "destination_node_id": "node-end-cold",
-          "id": "edge-decision-else",
-          "transition_condition": {
-            "type": "prompt",
-            "prompt": "Else"
-          }
-        },
-        "instruction": {
-          "type": "prompt",
-          "text": "Route selon le score et la demande du prospect."
-        },
-        "name": "Decision",
-        "edges": [
-          {
-            "destination_node_id": "node-propose-rdv",
-            "id": "edge-decision-hot-rdv",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "lead_score=hot ET le prospect veut/accepte un RDV de visite ou estimation"
-            }
-          },
-          {
-            "destination_node_id": "node-check-hours",
-            "id": "edge-decision-transfer",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Le prospect demande explicitement a parler a un conseiller/humain"
-            }
-          },
-          {
-            "destination_node_id": "node-save-warm",
-            "id": "edge-decision-warm",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "lead_score=warm OU hot qui prefere etre rappele"
-            }
-          }
-        ],
-        "id": "node-decision",
-        "type": "branch",
-        "display_position": {
-          "x": 1900,
-          "y": 100
-        }
-      },
-      {
-        "name": "Verif Horaires",
-        "edges": [
-          {
-            "destination_node_id": "node-ask-transfer",
-            "id": "edge-hours-ok",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "On est DANS les horaires d'ouverture (comparer {{current_hour}} et {{current_day}} avec {{horaires_agence}})"
-            }
-          },
-          {
-            "destination_node_id": "node-save-callback",
-            "id": "edge-hours-closed",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "On est HORS horaires d'ouverture"
-            }
-          }
-        ],
-        "id": "node-check-hours",
-        "type": "conversation",
-        "display_position": {
-          "x": 2200,
-          "y": -200
-        },
-        "instruction": {
-          "type": "prompt",
-          "text": "Verifie les horaires. Horaires agence : {{horaires_agence}}. Heure actuelle : {{current_hour}}h, jour : {{current_day}}.\n\nSi on est dans les horaires : proposer le transfert.\nSi on est hors horaires : expliquer et proposer un rappel."
-        }
-      },
-      {
-        "name": "Proposer transfert",
-        "edges": [
-          {
-            "destination_node_id": "node-transfer",
-            "id": "edge-ask-transfer-yes",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Le prospect accepte le transfert"
-            }
-          },
-          {
-            "destination_node_id": "node-save-callback",
-            "id": "edge-ask-transfer-no",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Le prospect prefere etre rappele"
-            }
-          },
-          {
-            "destination_node_id": "node-end",
-            "id": "edge-ask-transfer-nothing",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Le prospect ne veut ni transfert ni rappel"
-            }
-          }
-        ],
-        "id": "node-ask-transfer",
-        "type": "conversation",
-        "display_position": {
-          "x": 2500,
-          "y": -300
-        },
-        "instruction": {
-          "type": "prompt",
-          "text": "Demande au prospect : \"Souhaitez-vous que je vous passe un conseiller maintenant, ou preferez-vous qu'il vous rappelle ?\" Ne JAMAIS transferer sans demander."
-        }
-      },
-      {
-        "name": "Proposer RDV",
-        "edges": [
-          {
-            "destination_node_id": "node-fn-slots",
-            "id": "edge-propose-rdv-yes",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Le prospect veut voir les creneaux disponibles"
-            }
-          },
-          {
-            "destination_node_id": "node-save-callback",
-            "id": "edge-propose-rdv-callback",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Le prospect prefere etre rappele"
-            }
-          }
-        ],
-        "id": "node-propose-rdv",
-        "type": "conversation",
-        "display_position": {
-          "x": 2200,
-          "y": 100
-        },
-        "instruction": {
-          "type": "prompt",
-          "text": "Propose : \"Je peux vous proposer un creneau pour une visite/estimation. Souhaitez-vous que je regarde les disponibilites, ou preferez-vous qu'un conseiller vous rappelle ?\""
-        }
-      },
-      {
-        "tool_id": "tool_get_slots",
-        "instruction": {
-          "type": "static_text",
-          "text": "Je consulte les disponibilites."
-        },
-        "name": "Creneaux",
-        "edges": [
-          {
-            "destination_node_id": "node-choose-slot",
-            "id": "edge-slots-ok",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Creneaux disponibles (available=true)"
-            }
-          },
-          {
-            "destination_node_id": "node-save-callback",
-            "id": "edge-slots-none",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Aucun creneau OU erreur — proposer rappel"
-            }
-          }
-        ],
-        "id": "node-fn-slots",
+        "id": "node-fn-save",
+        "name": "Enregistrer prospect",
         "type": "function",
-        "tool_type": "local",
-        "speak_during_execution": true,
-        "display_position": {
-          "x": 2500,
-          "y": 100
-        },
-        "wait_for_result": true
-      },
-      {
-        "name": "Choix creneau",
-        "edges": [
-          {
-            "destination_node_id": "node-fn-save",
-            "id": "edge-choose-ok",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Le prospect a choisi un creneau"
-            }
-          },
-          {
-            "destination_node_id": "node-save-callback",
-            "id": "edge-choose-callback",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Aucun creneau ne convient, le prospect prefere un rappel"
-            }
-          }
-        ],
-        "id": "node-choose-slot",
-        "type": "conversation",
-        "display_position": {
-          "x": 2800,
-          "y": 100
-        },
-        "instruction": {
-          "type": "prompt",
-          "text": "Lis les creneaux un par un. Quand le prospect choisit, note le slot_id. Si aucun ne convient apres 2 propositions : proposer un rappel plutot que de boucler."
-        }
-      },
-      {
         "tool_id": "tool_save_prospect",
+        "tool_type": "local",
+        "wait_for_result": true,
+        "speak_during_execution": true,
         "instruction": {
           "type": "static_text",
-          "text": "Je reserve votre creneau."
+          "text": "Je note tout ça, un instant."
         },
-        "name": "Enregistrer RDV",
+        "display_position": {
+          "x": 1100,
+          "y": 300
+        },
         "edges": [
           {
+            "id": "e-save-ok",
             "destination_node_id": "node-fn-notify",
-            "id": "edge-save-ok",
             "transition_condition": {
               "type": "prompt",
               "prompt": "success=true"
             }
           },
           {
-            "destination_node_id": "node-save-callback",
-            "id": "edge-save-fail",
+            "id": "e-save-fail",
+            "destination_node_id": "node-end-fallback",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "Echec — proposer rappel"
+              "prompt": "Echec de l'enregistrement"
             }
           }
-        ],
-        "id": "node-fn-save",
-        "type": "function",
-        "tool_type": "local",
-        "speak_during_execution": true,
-        "display_position": {
-          "x": 3100,
-          "y": 100
-        },
-        "wait_for_result": true
+        ]
       },
       {
+        "id": "node-fn-notify",
+        "name": "Notifier conseiller (SMS)",
+        "type": "function",
         "tool_id": "tool_notify",
+        "tool_type": "local",
+        "wait_for_result": true,
+        "speak_during_execution": false,
         "instruction": {
           "type": "static_text",
           "text": ""
         },
-        "name": "Notifier agent",
-        "edges": [
-          {
-            "destination_node_id": "node-end-confirm",
-            "id": "edge-notify-done",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Notification envoyee"
-            }
-          }
-        ],
-        "id": "node-fn-notify",
-        "type": "function",
-        "tool_type": "local",
-        "speak_during_execution": false,
         "display_position": {
-          "x": 3400,
-          "y": 100
-        },
-        "wait_for_result": true
-      },
-      {
-        "name": "Enregistrer warm",
-        "edges": [
-          {
-            "destination_node_id": "node-end",
-            "id": "edge-warm-done",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Prospect enregistre"
-            }
-          }
-        ],
-        "id": "node-save-warm",
-        "type": "conversation",
-        "display_position": {
-          "x": 2200,
+          "x": 1400,
           "y": 300
         },
-        "instruction": {
-          "type": "prompt",
-          "text": "Pour un WARM lead : \"Je prends note de votre projet. Un conseiller vous recontactera prochainement. Quel est votre prenom et nom pour le dossier ?\" Puis appeler save_prospect SANS slotId (juste pour enregistrer)."
-        }
-      },
-      {
-        "name": "Enregistrer rappel",
         "edges": [
           {
-            "destination_node_id": "node-fn-save-callback",
-            "id": "edge-callback-save",
+            "id": "e-notify-done",
+            "destination_node_id": "node-decision-transfert",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "Infos collectees pour le rappel"
+              "prompt": "Notification traitee"
             }
           }
-        ],
-        "id": "node-save-callback",
+        ]
+      },
+      {
+        "id": "node-decision-transfert",
+        "name": "Decision transfert",
+        "type": "branch",
+        "instruction": {
+          "type": "prompt",
+          "text": "Decide si on transfere en direct ou si on prend conge avec promesse de rappel."
+        },
+        "else_edge": {
+          "destination_node_id": "node-end-rappel",
+          "id": "e-dec-else",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Else"
+          }
+        },
+        "display_position": {
+          "x": 1700,
+          "y": 300
+        },
+        "edges": [
+          {
+            "id": "e-dec-transfer",
+            "destination_node_id": "node-ask-transfer",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "leadScore=hot ET on est DANS les horaires d'ouverture (comparer {{current_hour}} et {{current_day}} avec {{horaires_agence}})"
+            }
+          }
+        ]
+      },
+      {
+        "id": "node-ask-transfer",
+        "name": "Proposer transfert",
         "type": "conversation",
-        "display_position": {
-          "x": 2500,
-          "y": 400
-        },
         "instruction": {
           "type": "prompt",
-          "text": "\"Je note votre demande de rappel. Quel creneau vous conviendrait le mieux ?\" (matin/apres-midi). Collecter prenom/nom si pas encore fait. Puis enregistrer avec save_prospect."
-        }
-      },
-      {
-        "tool_id": "tool_save_prospect",
-        "instruction": {
-          "type": "static_text",
-          "text": "J'enregistre votre demande."
+          "text": "\"Un conseiller est disponible. Souhaitez-vous que je vous le passe maintenant, ou preferez-vous qu'il vous rappelle ?\" Ne transfere QUE si le prospect accepte explicitement."
         },
-        "name": "Sauv rappel",
-        "edges": [
-          {
-            "destination_node_id": "node-fn-notify-callback",
-            "id": "edge-save-cb-ok",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Enregistre"
-            }
-          }
-        ],
-        "id": "node-fn-save-callback",
-        "type": "function",
-        "tool_type": "local",
-        "speak_during_execution": true,
         "display_position": {
-          "x": 2800,
-          "y": 400
+          "x": 2000,
+          "y": 150
         },
-        "wait_for_result": true
-      },
-      {
-        "tool_id": "tool_notify",
-        "instruction": {
-          "type": "static_text",
-          "text": ""
-        },
-        "name": "Notif rappel",
         "edges": [
           {
-            "destination_node_id": "node-end-callback",
-            "id": "edge-notify-cb-done",
+            "id": "e-at-yes",
+            "destination_node_id": "node-transfer",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "Fait"
-            }
-          }
-        ],
-        "id": "node-fn-notify-callback",
-        "type": "function",
-        "tool_type": "local",
-        "speak_during_execution": false,
-        "display_position": {
-          "x": 3100,
-          "y": 400
-        },
-        "wait_for_result": true
-      },
-      {
-        "name": "Modification",
-        "edges": [
-          {
-            "destination_node_id": "node-fn-slots-mod",
-            "id": "edge-mod-slots",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Nouvelles preferences de date"
+              "prompt": "Le prospect accepte le transfert"
             }
           },
           {
-            "destination_node_id": "node-end",
-            "id": "edge-mod-cancel",
+            "id": "e-at-no",
+            "destination_node_id": "node-end-rappel",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "Annule la modification"
+              "prompt": "Le prospect prefere etre rappele"
             }
           }
-        ],
-        "id": "node-modification",
-        "type": "conversation",
-        "display_position": {
-          "x": 1600,
-          "y": -200
-        },
-        "instruction": {
-          "type": "prompt",
-          "text": "\"Pour quelle date souhaitez-vous deplacer votre rendez-vous ?\""
-        }
+        ]
       },
       {
-        "tool_id": "tool_get_slots",
-        "instruction": {
-          "type": "static_text",
-          "text": "Je cherche de nouvelles disponibilites."
-        },
-        "name": "Creneaux modif",
-        "edges": [
-          {
-            "destination_node_id": "node-fn-reschedule",
-            "id": "edge-mod-slots-ok",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Creneau choisi"
-            }
-          },
-          {
-            "destination_node_id": "node-end",
-            "id": "edge-mod-slots-fail",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Pas de creneau ou abandon"
-            }
-          }
-        ],
-        "id": "node-fn-slots-mod",
-        "type": "function",
-        "tool_type": "local",
-        "speak_during_execution": true,
-        "display_position": {
-          "x": 1900,
-          "y": -200
-        },
-        "wait_for_result": true
-      },
-      {
-        "tool_id": "tool_reschedule",
-        "instruction": {
-          "type": "static_text",
-          "text": "Je deplace votre rendez-vous."
-        },
-        "name": "Deplacer",
-        "edges": [
-          {
-            "destination_node_id": "node-end",
-            "id": "edge-reschedule-done",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Fait"
-            }
-          }
-        ],
-        "id": "node-fn-reschedule",
-        "type": "function",
-        "tool_type": "local",
-        "speak_during_execution": true,
-        "display_position": {
-          "x": 2200,
-          "y": -200
-        },
-        "wait_for_result": true
-      },
-      {
-        "name": "Annulation",
-        "edges": [
-          {
-            "destination_node_id": "node-fn-cancel",
-            "id": "edge-annul-confirm",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Confirme l'annulation"
-            }
-          },
-          {
-            "destination_node_id": "node-modification",
-            "id": "edge-annul-to-mod",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Prefere modifier"
-            }
-          },
-          {
-            "destination_node_id": "node-end",
-            "id": "edge-annul-keep",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Garde son RDV finalement"
-            }
-          }
-        ],
-        "id": "node-annulation",
-        "type": "conversation",
-        "display_position": {
-          "x": 1600,
-          "y": -400
-        },
-        "instruction": {
-          "type": "prompt",
-          "text": "\"Confirmez-vous l'annulation de votre rendez-vous du {{slot_time}} ? Je peux aussi vous proposer une autre date si vous preferez.\""
-        }
-      },
-      {
-        "tool_id": "tool_cancel",
-        "instruction": {
-          "type": "static_text",
-          "text": "J'annule votre rendez-vous."
-        },
-        "name": "Annuler",
-        "edges": [
-          {
-            "destination_node_id": "node-end",
-            "id": "edge-cancel-done",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Fait"
-            }
-          }
-        ],
-        "id": "node-fn-cancel",
-        "type": "function",
-        "tool_type": "local",
-        "speak_during_execution": true,
-        "display_position": {
-          "x": 1900,
-          "y": -400
-        },
-        "wait_for_result": true
-      },
-      {
+        "id": "node-transfer",
+        "name": "Transfert",
+        "type": "transfer_call",
         "transfer_destination": {
           "type": "predefined",
           "number": "{{numero_transfert}}"
         },
-        "edge": {
-          "destination_node_id": "node-transfer-failed",
-          "id": "edge-transfer-fail",
-          "transition_condition": {
-            "type": "prompt",
-            "prompt": "Transfer failed"
-          }
-        },
-        "instruction": {
-          "type": "static_text",
-          "text": "Je vous passe un conseiller, restez en ligne."
-        },
-        "name": "Transfert",
-        "ignore_e164_validation": false,
-        "id": "node-transfer",
         "transfer_option": {
+          "type": "warm_transfer",
           "opt_out_initial_message": false,
           "on_hold_music": "ringtone",
           "opt_out_human_detection": false,
           "enable_bridge_audio_cue": false,
-          "type": "warm_transfer",
           "agent_detection_timeout_ms": 30000,
           "private_handoff_option": {
             "type": "prompt",
-            "prompt": "Resume : {{prospect_prenom}} {{prospect_nom}}, projet {{projet_type}}, budget {{budget}}, delai {{delai}}, secteur {{secteur}}."
-          },
-          "show_transferee_as_caller": true
+            "prompt": "Resume rapide : {{prospect_nom}}, lead chaud. Voir le SMS recu pour le detail."
+          }
         },
-        "type": "transfer_call",
+        "ignore_e164_validation": false,
+        "instruction": {
+          "type": "static_text",
+          "text": "Je vous passe un conseiller, restez en ligne."
+        },
         "display_position": {
-          "x": 2800,
-          "y": -300
+          "x": 2300,
+          "y": 100
         },
-        "speak_during_execution": true
+        "edge": {
+          "destination_node_id": "node-transfer-failed",
+          "id": "e-transfer-fail",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Transfer failed"
+          }
+        }
       },
       {
+        "id": "node-transfer-failed",
         "name": "Transfert echoue",
+        "type": "conversation",
+        "instruction": {
+          "type": "prompt",
+          "text": "\"Le conseiller n'est pas disponible a l'instant. Pas d'inquietude, il a deja recu votre demande et vous rappellera tres vite.\""
+        },
+        "display_position": {
+          "x": 2300,
+          "y": 300
+        },
         "edges": [
           {
-            "destination_node_id": "node-save-callback",
-            "id": "edge-tfail-cb",
+            "id": "e-tf-end",
+            "destination_node_id": "node-end-rappel",
             "transition_condition": {
               "type": "prompt",
               "prompt": "Toujours"
             }
           }
-        ],
-        "id": "node-transfer-failed",
-        "type": "conversation",
-        "display_position": {
-          "x": 3100,
-          "y": -300
-        },
-        "instruction": {
-          "type": "prompt",
-          "text": "\"Je suis desole, la ligne est occupee. Je vais enregistrer votre demande pour un rappel rapide.\""
-        }
+        ]
       },
       {
-        "name": "Fin RDV confirme",
-        "id": "node-end-confirm",
+        "id": "node-end-rappel",
+        "name": "Fin - rappel promis",
         "type": "end",
-        "display_position": {
-          "x": 3700,
-          "y": 100
-        },
         "speak_during_execution": true,
         "instruction": {
           "type": "prompt",
-          "text": "\"Votre rendez-vous est confirme. {{agent_nom}} vous accueillera. Bonne journee !\""
+          "text": "Confirme avec chaleur : \"C'est note, {{agent_nom}} ou un conseiller vous rappellera tres rapidement au numero communique. Merci de votre appel et belle journee !\""
+        },
+        "display_position": {
+          "x": 2000,
+          "y": 450
         }
       },
       {
-        "name": "Fin rappel",
-        "id": "node-end-callback",
+        "id": "node-end-fallback",
+        "name": "Fin - fallback",
         "type": "end",
-        "display_position": {
-          "x": 3400,
-          "y": 400
-        },
         "speak_during_execution": true,
         "instruction": {
           "type": "prompt",
-          "text": "\"C'est note, un conseiller vous rappellera. Bonne journee !\""
-        }
-      },
-      {
-        "name": "Fin cold",
-        "id": "node-end-cold",
-        "type": "end",
-        "display_position": {
-          "x": 2200,
-          "y": 500
+          "text": "\"Je vous remercie pour votre appel. Un conseiller vous recontactera. Belle journee !\""
         },
-        "speak_during_execution": true,
-        "instruction": {
-          "type": "prompt",
-          "text": "\"N'hesitez pas a nous rappeler quand votre projet sera plus concret. L'agence reste a votre disposition. Bonne journee !\""
-        }
-      },
-      {
-        "name": "Fin",
-        "id": "node-end",
-        "type": "end",
         "display_position": {
-          "x": 3700,
-          "y": -200
-        },
-        "speak_during_execution": true,
-        "instruction": {
-          "type": "prompt",
-          "text": "\"Merci pour votre appel. Bonne journee !\""
+          "x": 1400,
+          "y": 550
         }
       }
     ],
@@ -995,99 +514,12 @@
       {
         "execution_message_type": "static_text",
         "method": "POST",
-        "description": "Verifie si le prospect existe deja via son telephone et s'il a un RDV.",
-        "type": "custom",
-        "url": "{{webhook_url}}/webhook/retell",
-        "tool_id": "tool_check_prospect",
-        "args_at_root": true,
-        "execution_message_description": "Je consulte votre dossier.",
-        "timeout_ms": 30000,
-        "speak_after_execution": true,
-        "name": "check_prospect",
-        "response_variables": {
-          "found": "$.result.found",
-          "prospect_id": "$.result.prospect.id",
-          "prospect_nom": "$.result.prospect.nom",
-          "slot_id": "$.result.slot.id",
-          "slot_time": "$.result.slot.slotTime"
-        },
-        "speak_during_execution": true,
-        "parameters": {
-          "type": "object",
-          "required": ["tool_name", "args"],
-          "properties": {
-            "tool_name": {
-              "type": "string",
-              "const": "manage_appointment"
-            },
-            "args": {
-              "type": "object",
-              "required": ["action", "agencyId", "telephone"],
-              "properties": {
-                "action": {
-                  "type": "string",
-                  "const": "check"
-                },
-                "agencyId": {
-                  "type": "string",
-                  "const": "{{agency_id}}"
-                },
-                "telephone": {
-                  "type": "string",
-                  "const": "{{prospect_telephone}}"
-                }
-              }
-            }
-          }
-        }
-      },
-      {
-        "execution_message_type": "static_text",
-        "method": "POST",
-        "description": "Recupere les creneaux disponibles pour l'agence.",
-        "type": "custom",
-        "url": "{{webhook_url}}/webhook/retell",
-        "tool_id": "tool_get_slots",
-        "args_at_root": true,
-        "execution_message_description": "Je consulte les disponibilites.",
-        "timeout_ms": 30000,
-        "speak_after_execution": true,
-        "name": "get_slots",
-        "response_variables": {
-          "available": "$.result.available",
-          "slots": "$.result.slots"
-        },
-        "speak_during_execution": true,
-        "parameters": {
-          "type": "object",
-          "required": ["tool_name", "args"],
-          "properties": {
-            "tool_name": {
-              "type": "string",
-              "const": "get_available_slots"
-            },
-            "args": {
-              "type": "object",
-              "required": ["agencyId"],
-              "properties": {
-                "agencyId": {
-                  "type": "string",
-                  "const": "{{agency_id}}"
-                }
-              }
-            }
-          }
-        }
-      },
-      {
-        "execution_message_type": "static_text",
-        "method": "POST",
-        "description": "Enregistre le prospect. Avec slotId pour RDV, sans pour juste enregistrer.",
+        "description": "Enregistre le prospect qualifie avec toutes ses donnees. Appeler une fois la qualification terminee.",
         "type": "custom",
         "url": "{{webhook_url}}/webhook/retell",
         "tool_id": "tool_save_prospect",
         "args_at_root": true,
-        "execution_message_description": "J'enregistre votre dossier.",
+        "execution_message_description": "J'enregistre votre demande.",
         "timeout_ms": 30000,
         "speak_after_execution": true,
         "name": "save_prospect",
@@ -1114,40 +546,67 @@
                 },
                 "nom": {
                   "type": "string",
-                  "description": "Nom complet si connu"
+                  "description": "Prenom et nom du prospect si connus"
                 },
                 "telephone": {
                   "type": "string",
                   "const": "{{prospect_telephone}}"
                 },
-                "slotId": {
-                  "type": "string",
-                  "description": "ID du creneau choisi (optionnel)"
-                },
                 "qualificationData": {
                   "type": "object",
-                  "description": "Donnees de qualification",
+                  "description": "Donnees de qualification du prospect",
                   "properties": {
-                    "projet": {
-                      "type": "string"
-                    },
-                    "budget": {
-                      "type": "string"
-                    },
-                    "delai": {
-                      "type": "string"
-                    },
-                    "secteur": {
-                      "type": "string"
-                    },
-                    "typeBien": {
-                      "type": "string"
+                    "leadType": {
+                      "type": "string",
+                      "description": "vente, achat, location, estimation ou autre"
                     },
                     "leadScore": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "hot, warm ou cold"
+                    },
+                    "isVendeur": {
+                      "type": "string",
+                      "description": "oui si vente ou estimation, non sinon"
+                    },
+                    "typeBien": {
+                      "type": "string",
+                      "description": "appartement, maison, terrain, local, autre"
+                    },
+                    "secteur": {
+                      "type": "string",
+                      "description": "secteur geographique"
+                    },
+                    "budgetOuPrix": {
+                      "type": "string",
+                      "description": "budget pour achat/location, prix espere pour vente"
+                    },
+                    "surface": {
+                      "type": "string",
+                      "description": "surface du bien si vendeur"
+                    },
+                    "delai": {
+                      "type": "string",
+                      "description": "urgent, moins_3_mois, 3_6_mois, plus_6_mois"
+                    },
+                    "motivation": {
+                      "type": "string",
+                      "description": "raison du projet"
+                    },
+                    "annonceRef": {
+                      "type": "string",
+                      "description": "reference d'annonce si appel pour un bien precis"
+                    },
+                    "financement": {
+                      "type": "string",
+                      "description": "pour acheteur: accord banque, en cours, pas commence"
+                    },
+                    "dejaEstime": {
+                      "type": "string",
+                      "description": "pour vendeur: oui/non deja fait estimer ailleurs"
                     },
                     "creneauRappel": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "moment souhaite pour le rappel"
                     }
                   }
                 }
@@ -1159,101 +618,7 @@
       {
         "execution_message_type": "static_text",
         "method": "POST",
-        "description": "Modifie le creneau d'un RDV existant.",
-        "type": "custom",
-        "url": "{{webhook_url}}/webhook/retell",
-        "tool_id": "tool_reschedule",
-        "args_at_root": true,
-        "execution_message_description": "Je deplace votre rendez-vous.",
-        "timeout_ms": 30000,
-        "speak_after_execution": true,
-        "name": "reschedule",
-        "response_variables": {
-          "success": "$.result.rescheduled"
-        },
-        "speak_during_execution": true,
-        "parameters": {
-          "type": "object",
-          "required": ["tool_name", "args"],
-          "properties": {
-            "tool_name": {
-              "type": "string",
-              "const": "manage_appointment"
-            },
-            "args": {
-              "type": "object",
-              "required": ["action", "agencyId", "prospectId", "newSlotId"],
-              "properties": {
-                "action": {
-                  "type": "string",
-                  "const": "reschedule"
-                },
-                "agencyId": {
-                  "type": "string",
-                  "const": "{{agency_id}}"
-                },
-                "prospectId": {
-                  "type": "string",
-                  "const": "{{prospect_id}}"
-                },
-                "newSlotId": {
-                  "type": "string",
-                  "description": "ID du nouveau creneau"
-                }
-              }
-            }
-          }
-        }
-      },
-      {
-        "execution_message_type": "static_text",
-        "method": "POST",
-        "description": "Annule un RDV existant.",
-        "type": "custom",
-        "url": "{{webhook_url}}/webhook/retell",
-        "tool_id": "tool_cancel",
-        "args_at_root": true,
-        "execution_message_description": "J'annule votre rendez-vous.",
-        "timeout_ms": 30000,
-        "speak_after_execution": true,
-        "name": "cancel",
-        "response_variables": {
-          "success": "$.result.cancelled"
-        },
-        "speak_during_execution": true,
-        "parameters": {
-          "type": "object",
-          "required": ["tool_name", "args"],
-          "properties": {
-            "tool_name": {
-              "type": "string",
-              "const": "manage_appointment"
-            },
-            "args": {
-              "type": "object",
-              "required": ["action", "agencyId", "prospectId"],
-              "properties": {
-                "action": {
-                  "type": "string",
-                  "const": "cancel"
-                },
-                "agencyId": {
-                  "type": "string",
-                  "const": "{{agency_id}}"
-                },
-                "prospectId": {
-                  "type": "string",
-                  "const": "{{prospect_id}}"
-                }
-              }
-            }
-          }
-        }
-      },
-      {
-        "execution_message_type": "static_text",
-        "method": "POST",
-        "description": "Envoie SMS a l'agent pour hot leads ou rappels prioritaires.",
+        "description": "Envoie un SMS au conseiller avec la fiche prospect qualifiee. Appeler apres save_prospect.",
         "type": "custom",
         "url": "{{webhook_url}}/webhook/retell",
         "tool_id": "tool_notify",
@@ -1295,27 +660,18 @@
     },
     "tool_call_strict_mode": true,
     "default_dynamic_variables": {
-      "agence_nom": "Immobilier Premium",
-      "agent_nom": "Marc Dupont",
-      "adresse_agence": "15 avenue des Champs-Elysees, 75008 Paris",
+      "agence_nom": "Orpi Cergy",
+      "agent_nom": "Gérald",
+      "secteur_agence": "Cergy-Pontoise et environs",
       "horaires_agence": "lundi au vendredi 9h-19h, samedi 10h-13h",
       "numero_transfert": "+33600000000",
       "webhook_url": "https://votre-serveur.com",
       "agency_id": "VOTRE_AGENCY_UUID",
+      "caller_phone": "",
       "current_hour": "14",
       "current_day": "mercredi"
     },
     "knowledge_base_ids": [],
-    "kb_config": {
-      "top_k": 3,
-      "filter_score": 0.6
-    },
-    "begin_tag_display_position": {
-      "x": 6,
-      "y": 102
-    },
-    "notes": [],
-    "is_published": false,
-    "is_transfer_cf": false
+    "is_published": false
   }
 }

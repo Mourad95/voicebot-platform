@@ -9,9 +9,6 @@ ifneq (,$(wildcard .env))
   export
 endif
 
-MONGODB_URI ?= mongodb://voicebot:change_me_dev_password@127.0.0.1:27017/voicebot?authSource=admin
-MONGODB_URI_DOCKER := $(subst 127.0.0.1,mongo,$(subst localhost,mongo,$(MONGODB_URI)))
-
 .PHONY: help install mongo up down logs ps build dev start seed seed-docker \
 	api api-build api-rebuild api-logs api-stop
 
@@ -21,7 +18,6 @@ help: ## Affiche les commandes disponibles
 	@grep -E '^[a-zA-Z0-9_-]+:.*##' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 	@echo "Variables: SECTOR=$(SECTOR)  PORT=$(PORT)"
-	@echo "Mongo: MONGODB_URI (local → 127.0.0.1, docker seed → mongo)"
 
 install: ## Installe les dépendances npm
 	npm ci
@@ -60,10 +56,10 @@ ps: ## Statut des conteneurs Docker
 build: ## Compile TypeScript
 	npm run build
 
-dev: mongo ## Serveur en dev (tsx watch, lit MONGODB_URI depuis .env)
+dev: mongo ## Serveur en dev (tsx watch, lit DATABASE_URL depuis .env)
 	npm run dev
 
-start: build ## Serveur compilé (node dist, lit MONGODB_URI depuis .env)
+start: build ## Serveur compilé (node dist, lit DATABASE_URL depuis .env)
 	npm run start
 
 seed: mongo ## Seed DB depuis le Mac (SECTOR=immo par défaut)
@@ -75,7 +71,7 @@ seed-docker: mongo ## Seed dans le réseau Docker (hostname mongo)
 	  -v "$(CURDIR):/app" -w /app \
 	  --network "$$NETWORK" \
 	  --env-file .env \
-	  -e MONGODB_URI=$(MONGODB_URI_DOCKER) \
+	  -e DATABASE_URL=$(MONGODB_URI) \
 	  -e SECTOR=$(SECTOR) \
 	  node:22-alpine \
 	  sh -c "npm ci && npm run seed"

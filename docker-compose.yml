@@ -1,33 +1,43 @@
-# Dev config - pas d'auth pour simplifier (replica set requis pour transactions)
-services:
-  app:
-    build: .
-    ports:
-      - "${PORT:-3000}:${PORT:-3000}"
-    env_file:
-      - .env
-    environment:
-      MONGODB_URI: mongodb://mongo:27017/voicebot?replicaSet=rs0
-    depends_on:
-      mongo:
-        condition: service_healthy
-    volumes:
-      - .:/app
-      - /app/node_modules
+networks:
+  voicebot:
+    driver: bridge
 
+services:
   mongo:
-    image: mongo:7
+    image: mongo:latest
+    restart: always
+    container_name: voicebot-mongo
+    networks:
+      - voicebot
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
     ports:
       - "27017:27017"
     volumes:
-      - mongo_data:/data/db
-    command: ["--replSet", "rs0", "--bind_ip_all"]
+      - mongodb_data:/data/db
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "try { rs.status().ok } catch(e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]}).ok }"]
-      interval: 5s
-      timeout: 10s
-      retries: 10
-      start_period: 15s
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    restart: always
+    container_name: voicebot-app
+    networks:
+      - voicebot
+    ports:
+      - "${PORT:-3000}:3000"
+    env_file:
+      - .env
+    environment:
+      MONGODB_URI: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:27017/voicebot?authSource=admin
+    depends_on:
+      mongo:
+        condition: service_healthy
 
 volumes:
-  mongo_data:
+  mongodb_data:
+    driver: local

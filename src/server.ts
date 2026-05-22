@@ -10,8 +10,7 @@ import { retellEventsRouter } from './core/routes/retellEvents';
 const PORT = Number(process.env.PORT ?? 3000);
 const NODE_ENV = process.env.NODE_ENV ?? 'development';
 const SECTOR = process.env.SECTOR ?? process.env.NICHE ?? 'immo';
-const MONGODB_URI =
-  process.env.MONGODB_URI ?? 'mongodb://localhost:27017/voicebot';
+const MONGODB_URI = process.env.MONGODB_URI ?? "";
 
 async function connectDatabase(): Promise<void> {
   try {
