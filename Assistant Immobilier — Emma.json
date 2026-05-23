@@ -178,7 +178,7 @@
         "type": "conversation",
         "instruction": {
           "type": "prompt",
-          "text": "PROSPECT VENDEUR PRIORITAIRE (mandat potentiel). Le prospect veut VENDRE. Ne JAMAIS parler d'achat, de budget d'achat ni de financement. Toutes tes questions concernent UNIQUEMENT la vente. Sois chaleureuse et qualifie UNE question a la fois, dans cet ordre :\n1. \"Quel type de bien souhaitez-vous vendre ?\" (appartement, maison, terrain...)\n2. \"Dans quel secteur se situe-t-il ?\"\n3. \"Quelle surface environ ?\"\n4. \"Avez-vous une idee du prix de vente souhaite ?\" (ne JAMAIS donner d'estimation toi-meme)\n5. \"Dans quel delai souhaitez-vous vendre ?\"\n6. \"Qu'est-ce qui motive cette vente ?\" (mutation, succession, separation, agrandissement...)\n7. \"Avez-vous deja fait estimer ce bien ailleurs ?\"\nCalcule le leadScore : HOT si delai court (<3 mois) et motive. Marque isVendeur=oui. Une fois l'essentiel obtenu, passe a la suite."
+          "text": "PROSPECT VENDEUR PRIORITAIRE (mandat potentiel). Le prospect veut VENDRE. Ne JAMAIS parler d'achat, de budget d'achat ni de financement. Toutes tes questions concernent UNIQUEMENT la vente.\n\nREGLE STRICTE : tu DOIS poser TOUTES les 8 questions ci-dessous, dans l'ordre exact, UNE a la fois. Tu n'as PAS le droit d'en sauter une, meme si tu juges l'information secondaire. Si le prospect repond \"je ne sais pas\" ou refuse, note-le et passe a la question suivante (ne reformule pas, ne reviens pas en arriere).\n\n1. \"Quel type de bien souhaitez-vous vendre ?\" (appartement, maison, terrain...)\n2. \"Dans quel secteur se situe-t-il ?\" (ville, quartier)\n3. \"Pourriez-vous me donner l'adresse precise du bien, ou au moins la rue ?\" Si le prospect refuse, dis \"Pas de souci, vous pourrez la communiquer au conseiller\" puis passe a la 4.\n4. \"Quelle surface environ, en metres carres ?\" (OBLIGATOIRE - ne JAMAIS sauter cette question)\n5. \"Avez-vous une idee du prix de vente souhaite ?\" (ne JAMAIS donner d'estimation toi-meme)\n6. \"Dans quel delai souhaitez-vous vendre ?\"\n7. \"Qu'est-ce qui motive cette vente ?\" (mutation, succession, separation, agrandissement...)\n8. \"Avez-vous deja fait estimer ce bien ailleurs ?\"\n\nCalcule le leadScore : HOT si delai court (<3 mois) et motive. Marque isVendeur=oui. Ne passe a la suite QUE lorsque les 8 questions ont ete posees."
         },
         "display_position": {
           "x": 450,
@@ -201,7 +201,7 @@
         "type": "conversation",
         "instruction": {
           "type": "prompt",
-          "text": "Qualifie l'acheteur, UNE question a la fois :\n1. Si le prospect mentionne une annonce precise, note la reference (annonceRef) et confirme que c'est bien un achat.\n2. \"Quel type de bien recherchez-vous ?\"\n3. \"Dans quel secteur ?\"\n4. \"Quel est votre budget approximatif ?\"\n5. \"Dans quel delai souhaitez-vous acheter ?\"\n6. \"Ou en etes-vous cote financement ?\" (accord de principe banque, en cours, pas commence)\nCalcule leadScore : HOT si budget defini + delai <3 mois + financement engage. isVendeur=non. Une fois l'essentiel obtenu, passe a la suite."
+          "text": "Qualifie l'acheteur. REGLE STRICTE : tu DOIS poser TOUTES les questions ci-dessous, dans l'ordre exact, UNE a la fois. Tu n'as PAS le droit d'en sauter une. Si le prospect repond \"je ne sais pas\" ou refuse, note-le et passe a la question suivante.\n\n1. Si le prospect mentionne une annonce precise, note la reference (annonceRef) et confirme que c'est bien un achat.\n2. \"Quel type de bien recherchez-vous ?\" (appartement, maison...)\n3. \"Dans quel secteur ?\"\n4. \"Quel est votre budget approximatif ?\"\n5. \"Dans quel delai souhaitez-vous acheter ?\"\n6. \"Ou en etes-vous cote financement ?\" (accord de principe banque, en cours, pas commence)\n\nCalcule leadScore : HOT si budget defini + delai <3 mois + financement engage. isVendeur=non. Ne passe a la suite QUE lorsque toutes les questions ont ete posees."
         },
         "display_position": {
           "x": 450,
@@ -224,7 +224,7 @@
         "type": "conversation",
         "instruction": {
           "type": "prompt",
-          "text": "Qualifie le candidat locataire, UNE question a la fois :\n1. \"Quel type de bien cherchez-vous a louer ?\"\n2. \"Dans quel secteur ?\"\n3. \"Quel budget loyer mensuel maximum ?\"\n4. \"Pour quelle date d'emmenagement ?\"\nCalcule leadScore : HOT si date proche (<1 mois) et budget realiste. isVendeur=non. Puis passe a la suite."
+          "text": "Qualifie le candidat locataire. REGLE STRICTE : tu DOIS poser TOUTES les 4 questions ci-dessous, dans l'ordre exact, UNE a la fois. Tu n'as PAS le droit d'en sauter une. Si le prospect ne sait pas ou refuse, note-le et passe a la question suivante.\n\n1. \"Quel type de bien cherchez-vous a louer ?\" (studio, T2, maison...)\n2. \"Dans quel secteur ?\"\n3. \"Quel budget loyer mensuel maximum ?\"\n4. \"Pour quelle date d'emmenagement ?\"\n\nCalcule leadScore : HOT si date proche (<1 mois) et budget realiste. isVendeur=non. Ne passe a la suite QUE lorsque les 4 questions ont ete posees."
         },
         "display_position": {
           "x": 450,
@@ -398,10 +398,41 @@
         "edges": [
           {
             "id": "e-notify-done",
-            "destination_node_id": "node-decision-transfert",
+            "destination_node_id": "node-conclusion",
             "transition_condition": {
               "type": "prompt",
               "prompt": "Notification traitee"
+            }
+          }
+        ]
+      },
+      {
+        "id": "node-conclusion",
+        "name": "Conclusion rappel",
+        "type": "conversation",
+        "instruction": {
+          "type": "prompt",
+          "text": "Confirme au prospect que tout est bien enregistre et que {{agent_nom}} ou un conseiller le rappellera tres rapidement. Demande poliment s'il y a autre chose avant de raccrocher. NE propose PAS le transfert de toi-meme. Si le prospect demande EXPLICITEMENT a parler a quelqu'un maintenant ou a etre mis en relation immediatement, note-le pour declencher le transfert."
+        },
+        "display_position": {
+          "x": 1700,
+          "y": 300
+        },
+        "edges": [
+          {
+            "id": "e-conclusion-transfer",
+            "destination_node_id": "node-decision-transfert",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Le prospect demande explicitement a parler a quelqu'un maintenant ou a etre mis en relation immediatement"
+            }
+          },
+          {
+            "id": "e-conclusion-end",
+            "destination_node_id": "node-end-rappel",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Else"
             }
           }
         ]
@@ -412,7 +443,7 @@
         "type": "branch",
         "instruction": {
           "type": "prompt",
-          "text": "Decide si on transfere en direct ou si on prend conge avec promesse de rappel."
+          "text": "Verifie si l'agence est actuellement ouverte en comparant {{current_hour}} et {{current_day}} avec {{horaires_agence}}. Si oui, propose le transfert. Sinon, prend conge avec promesse de rappel."
         },
         "else_edge": {
           "destination_node_id": "node-end-rappel",
@@ -432,7 +463,7 @@
             "destination_node_id": "node-ask-transfer",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "leadScore=hot ET on est DANS les horaires d'ouverture (comparer {{current_hour}} et {{current_day}} avec {{horaires_agence}})"
+              "prompt": "L'agence est actuellement ouverte (dans les horaires d'ouverture)"
             }
           }
         ]
@@ -513,7 +544,7 @@
         "speak_during_execution": true,
         "instruction": {
           "type": "static_text",
-          "text": "Le conseiller n'est pas disponible a l'instant. Pas d'inquietude, {{agent_nom}} a deja recu vos informations et vous rappellera tres vite. Merci de votre appel et belle journee !"
+          "text": "Le conseiller n'est pas disponible a l'instant. Pas d'inquietude, {{agent_nom}} a deja reçu vos informations et vous rappellera tres vite. Merci de votre appel et belle journee !"
         },
         "display_position": {
           "x": 2300,
@@ -527,7 +558,7 @@
         "speak_during_execution": true,
         "instruction": {
           "type": "static_text",
-          "text": "C'est note, {{agent_nom}} ou un conseiller vous rappellera tres rapidement au numero communique. Merci de votre appel et belle journee !"
+          "text": "C'est noté, {{agent_nom}} ou un conseiller vous rappellera tres rapidement au numero communique. Merci de votre appel et belle journee !"
         },
         "display_position": {
           "x": 2000,
@@ -615,7 +646,11 @@
                     },
                     "secteur": {
                       "type": "string",
-                      "description": "secteur geographique"
+                      "description": "secteur geographique (ville, quartier)"
+                    },
+                    "adresseBien": {
+                      "type": "string",
+                      "description": "adresse precise du bien a vendre (rue + ville si donnee). Laisser vide si le prospect refuse ou ne souhaite pas la communiquer."
                     },
                     "budgetOuPrix": {
                       "type": "string",
@@ -754,9 +789,7 @@
       "numero_transfert": "+33600000000",
       "webhook_url": "https://apache-spoiled-contusion.ngrok-free.dev",
       "agency_id": "2c25ed9c-218e-4e13-95d7-6a86c43a9c14",
-      "caller_phone": "",
-      "current_hour": "14",
-      "current_day": "mercredi"
+      "caller_phone": ""
     },
     "knowledge_base_ids": [],
     "is_published": false

@@ -6,11 +6,14 @@ import mongoose from 'mongoose';
 import { validateRetell } from './core/middleware/validateRetell';
 import { retellRouter } from './core/routes/retell';
 import { retellEventsRouter } from './core/routes/retellEvents';
+import { retellInboundRouter } from './core/routes/retellInbound';
+import { vonageRouter } from './core/routes/vonage';
 
 const PORT = Number(process.env.PORT ?? 3000);
 const NODE_ENV = process.env.NODE_ENV ?? 'development';
 const SECTOR = process.env.SECTOR ?? process.env.NICHE ?? 'immo';
 const MONGODB_URI = process.env.MONGODB_URI ?? "";
+const PUBLIC_URL = process.env.PUBLIC_URL ?? '';
 
 async function connectDatabase(): Promise<void> {
   try {
@@ -68,12 +71,20 @@ async function startServer(): Promise<void> {
     validateRetell,
     retellEventsRouter,
   );
+  app.use('/webhook/retell/inbound', express.json(), retellInboundRouter);
+  app.use('/webhook/vonage', express.json(), vonageRouter);
   app.use('/webhook/retell', retellRawBodyParser, validateRetell, retellRouter);
 
   app.listen(PORT, () => {
     process.stdout.write(
       `🚀 Serveur démarré - port ${PORT} - sector ${SECTOR} - env ${NODE_ENV}\n`,
     );
+    if (PUBLIC_URL) {
+      process.stdout.write(
+        `[VONAGE] Inbound URL → ${PUBLIC_URL}/webhook/vonage/inbound\n` +
+        `[VONAGE] Status URL  → ${PUBLIC_URL}/webhook/vonage/status\n`,
+      );
+    }
   });
 
   registerShutdownHooks();

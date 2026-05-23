@@ -88,7 +88,7 @@ export async function saveProspect(
       const slot = await Slot.findOneAndUpdate(
         { _id: slotObjectId, agencyId: agencyObjectId, isAvailable: true },
         { isAvailable: false, prospectId: prospect._id },
-        { new: true },
+        { returnDocument: 'after' },
       );
 
       if (slot === null) {

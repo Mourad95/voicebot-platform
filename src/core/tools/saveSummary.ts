@@ -26,7 +26,7 @@ export async function saveSummary(
     const prospect = await Prospect.findOneAndUpdate(
       { uuid: input.prospectId },
       { resume: input.resume },
-      { new: true },
+      { returnDocument: 'after' },
     );
 
     if (prospect === null) {
