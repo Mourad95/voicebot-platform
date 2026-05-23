@@ -178,7 +178,7 @@
         "type": "conversation",
         "instruction": {
           "type": "prompt",
-          "text": "PROSPECT PRIORITAIRE (vendeur potentiel = mandat). Sois chaleureuse et qualifie en profondeur, UNE question a la fois, dans cet ordre :\n1. \"Quel type de bien souhaitez-vous vendre ?\" (appartement, maison, terrain...)\n2. \"Dans quel secteur se situe-t-il ?\"\n3. \"Quelle surface environ ?\"\n4. \"Avez-vous une idee du prix souhaite ?\" (ne JAMAIS donner d'estimation toi-meme)\n5. \"Dans quel delai envisagez-vous de vendre ?\"\n6. \"Qu'est-ce qui motive cette vente ?\" (mutation, succession, agrandissement...)\n7. \"Avez-vous deja fait estimer ce bien ailleurs ?\"\nCalcule le leadScore : HOT si delai court (<3 mois) et motive. Marque isVendeur=oui. Une fois l'essentiel obtenu, passe a la suite."
+          "text": "PROSPECT VENDEUR PRIORITAIRE (mandat potentiel). Le prospect veut VENDRE. Ne JAMAIS parler d'achat, de budget d'achat ni de financement. Toutes tes questions concernent UNIQUEMENT la vente. Sois chaleureuse et qualifie UNE question a la fois, dans cet ordre :\n1. \"Quel type de bien souhaitez-vous vendre ?\" (appartement, maison, terrain...)\n2. \"Dans quel secteur se situe-t-il ?\"\n3. \"Quelle surface environ ?\"\n4. \"Avez-vous une idee du prix de vente souhaite ?\" (ne JAMAIS donner d'estimation toi-meme)\n5. \"Dans quel delai souhaitez-vous vendre ?\"\n6. \"Qu'est-ce qui motive cette vente ?\" (mutation, succession, separation, agrandissement...)\n7. \"Avez-vous deja fait estimer ce bien ailleurs ?\"\nCalcule le leadScore : HOT si delai court (<3 mois) et motive. Marque isVendeur=oui. Une fois l'essentiel obtenu, passe a la suite."
         },
         "display_position": {
           "x": 450,
@@ -270,7 +270,7 @@
         "type": "conversation",
         "instruction": {
           "type": "prompt",
-          "text": "Demande le prenom, nom et numero de telephone du prospect pour que le conseiller puisse le recontacter. Si le numero de l'appelant est disponible via {{caller_phone}}, propose-le comme numero par defaut : \"Je vous rappellerai sur le {{caller_phone}}, c'est bien ce numero ?\" Sinon demande directement."
+          "text": "ETAPE OBLIGATOIRE en DEUX questions distinctes, dans cet ordre :\n1. D'abord : \"Pour que le conseiller puisse vous recontacter, pourriez-vous me donner votre prenom et votre nom ?\" Attends la reponse complete (prenom + nom).\n2. Ensuite : \"Merci. Quel est votre numero de telephone, s'il vous plait ?\" Attends que le prospect dicte les 10 chiffres.\nNE JAMAIS proposer un numero toi-meme, NE JAMAIS inventer ou deviner un numero. Si le prospect a deja donne son nom plus tot, confirme-le mais demande quand meme le telephone. Ne passe a la suite qu'une fois LES DEUX collectes."
         },
         "display_position": {
           "x": 700,
@@ -509,25 +509,16 @@
       {
         "id": "node-transfer-failed",
         "name": "Transfert echoue",
-        "type": "conversation",
+        "type": "end",
+        "speak_during_execution": true,
         "instruction": {
-          "type": "prompt",
-          "text": "\"Le conseiller n'est pas disponible a l'instant. Pas d'inquietude, il a deja recu votre demande et vous rappellera tres vite.\""
+          "type": "static_text",
+          "text": "Le conseiller n'est pas disponible a l'instant. Pas d'inquietude, {{agent_nom}} a deja recu vos informations et vous rappellera tres vite. Merci de votre appel et belle journee !"
         },
         "display_position": {
           "x": 2300,
           "y": 300
-        },
-        "edges": [
-          {
-            "id": "e-tf-end",
-            "destination_node_id": "node-end-rappel",
-            "transition_condition": {
-              "type": "prompt",
-              "prompt": "Toujours"
-            }
-          }
-        ]
+        }
       },
       {
         "id": "node-end-rappel",
@@ -535,8 +526,8 @@
         "type": "end",
         "speak_during_execution": true,
         "instruction": {
-          "type": "prompt",
-          "text": "Confirme avec chaleur : \"C'est note, {{agent_nom}} ou un conseiller vous rappellera tres rapidement au numero communique. Merci de votre appel et belle journee !\""
+          "type": "static_text",
+          "text": "C'est note, {{agent_nom}} ou un conseiller vous rappellera tres rapidement au numero communique. Merci de votre appel et belle journee !"
         },
         "display_position": {
           "x": 2000,
@@ -668,7 +659,7 @@
       {
         "execution_message_type": "static_text",
         "method": "POST",
-        "description": "Sauvegarde un resume concis de la conversation. Appeler apres save_prospect avec un resume de 2-3 phrases : projet, informations cles, prochaine etape.",
+        "description": "Sauvegarde un resume concis de la conversation. Appeler apres save_prospect. Utiliser le prospectId exact retourne par save_prospect (champ prospectId de la reponse).",
         "type": "custom",
         "url": "{{webhook_url}}/webhook/retell",
         "tool_id": "tool_save_summary",
@@ -695,7 +686,7 @@
               "properties": {
                 "prospectId": {
                   "type": "string",
-                  "const": "{{prospect_id}}"
+                  "description": "UUID exact du prospect retourne par save_prospect dans le champ prospectId. Recopie cette valeur sans la modifier."
                 },
                 "resume": {
                   "type": "string",
@@ -709,7 +700,7 @@
       {
         "execution_message_type": "static_text",
         "method": "POST",
-        "description": "Envoie un SMS au conseiller avec la fiche prospect qualifiee. Appeler apres save_prospect.",
+        "description": "Envoie un SMS au conseiller avec la fiche prospect qualifiee. Appeler apres save_summary. Utiliser le prospectId exact retourne par save_prospect. Determine la priorite metier en fonction de la qualite et urgence du lead.",
         "type": "custom",
         "url": "{{webhook_url}}/webhook/retell",
         "tool_id": "tool_notify",
@@ -732,11 +723,16 @@
             },
             "args": {
               "type": "object",
-              "required": ["prospectId"],
+              "required": ["prospectId", "priority"],
               "properties": {
                 "prospectId": {
                   "type": "string",
-                  "const": "{{prospect_id}}"
+                  "description": "UUID exact du prospect retourne par save_prospect dans le champ prospectId. Recopie cette valeur sans la modifier."
+                },
+                "priority": {
+                  "type": "string",
+                  "enum": ["haute", "moyenne", "basse"],
+                  "description": "Priorite du lead pour le conseiller. 'haute' = RDV confirme OU lead chaud avec delai urgent et projet concret (acheter/vendre/louer rapidement avec budget defini). 'moyenne' = lead qualifie avec rappel demande ou interesse mais sans urgence immediate. 'basse' = lead peu qualifie, juste curieux, sans projet concret ou sans informations cles collectees."
                 }
               }
             }

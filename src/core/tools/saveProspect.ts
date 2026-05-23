@@ -100,6 +100,9 @@ export async function saveProspect(
       agencyId: input.agencyId,
       prospectId: prospect.uuid,
       slotId: input.slotId,
+      nom: input.nom ?? '<empty>',
+      telephone: input.telephone ?? '<empty>',
+      qualifKeys: String(Object.keys(input.qualificationData).length),
     });
 
     return { success: true, prospectId: prospect.uuid };

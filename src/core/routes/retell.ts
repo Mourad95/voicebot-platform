@@ -1,11 +1,12 @@
 import { Router, type Request, type Response } from 'express';
 
 import { getAvailableSlots } from '../tools/getAvailableSlots';
+import { logToolEvent } from '../tools/tool-log';
 import {
   manageAppointment,
   type ManageAppointmentInput,
 } from '../tools/manageAppointment';
-import { notifyAgent } from '../tools/notifyAgent';
+import { isPriority, notifyAgent } from '../tools/notifyAgent';
 import { saveProspect, type SaveProspectInput } from '../tools/saveProspect';
 import { saveSummary } from '../tools/saveSummary';
 import type { ToolResult } from '../tools/tool-result.types';
@@ -98,12 +99,21 @@ async function dispatchToolCall(
 
     case 'notify_agent': {
       const prospectId = asString(args.prospectId);
+      const priority = args.priority;
+      logToolEvent('notify_agent: args received', {
+        prospectId: String(args.prospectId ?? ''),
+        priority: String(priority ?? ''),
+      });
 
       if (prospectId === undefined) {
         return { success: false, error: 'Missing prospectId in args' };
       }
 
-      return notifyAgent({ prospectId });
+      if (!isPriority(priority)) {
+        return { success: false, error: 'Invalid or missing priority (expected haute|moyenne|basse)' };
+      }
+
+      return notifyAgent({ prospectId, priority });
     }
 
     case 'manage_appointment': {
@@ -132,6 +142,10 @@ async function dispatchToolCall(
     case 'save_summary': {
       const prospectId = asString(args.prospectId);
       const resume = asString(args.resume);
+      logToolEvent('save_summary: args received', {
+        prospectId: String(args.prospectId ?? ''),
+        resumeLength: String(typeof args.resume === 'string' ? args.resume.length : -1),
+      });
 
       if (prospectId === undefined) {
         return { success: false, error: 'Missing prospectId in args' };

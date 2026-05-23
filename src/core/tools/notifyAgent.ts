@@ -30,33 +30,17 @@ function isPopulatedAgency(agency: unknown): agency is IAgencyDocument {
   );
 }
 
-type Priority = 'haute' | 'moyenne' | 'basse';
+export const PRIORITIES = ['haute', 'moyenne', 'basse'] as const;
+export type Priority = (typeof PRIORITIES)[number];
 
-function resolvePriority(prospect: {
-  readonly slotId?: unknown;
-  readonly creneauRappel?: Date | null;
-  readonly telephone?: string;
-  readonly qualificationData?: Map<string, string>;
-}): Priority {
-  if (prospect.slotId !== undefined && prospect.slotId !== null) {
-    return 'haute';
-  }
-
-  const hasRappel = prospect.creneauRappel !== undefined && prospect.creneauRappel !== null;
-  const hasPhone = typeof prospect.telephone === 'string' && prospect.telephone.trim() !== '';
-  const hasQualif = (prospect.qualificationData?.size ?? 0) > 0;
-
-  if (hasRappel || (hasPhone && hasQualif)) {
-    return 'moyenne';
-  }
-
-  return 'basse';
+export function isPriority(value: unknown): value is Priority {
+  return typeof value === 'string' && (PRIORITIES as readonly string[]).includes(value);
 }
 
 const PRIORITY_HEADER: Record<Priority, string> = {
-  haute:   '🔴 PRIORITÉ HAUTE — RDV confirmé, à préparer',
-  moyenne: '🟡 PRIORITÉ MOYENNE — Rappel demandé',
-  basse:   '🟢 PRIORITÉ BASSE — À recontacter',
+  haute:   '🔴 PRIORITÉ HAUTE — RDV confirmé / lead chaud, à traiter en priorité',
+  moyenne: '🟡 PRIORITÉ MOYENNE — Rappel à effectuer',
+  basse:   '🟢 PRIORITÉ BASSE — À recontacter quand possible',
 };
 
 function getTwilioConfig(): {
@@ -81,9 +65,11 @@ function getTwilioConfig(): {
 
 export async function notifyAgent(input: {
   readonly prospectId: string;
+  readonly priority: Priority;
 }): Promise<NotifyAgentResult> {
   try {
     if (!isValidUuid(input.prospectId)) {
+      logToolEvent("notifyAgent: invalid UUID", { prospectId: input.prospectId });
       return { success: false, error: "Invalid prospect UUID" };
     }
 
@@ -107,19 +93,26 @@ export async function notifyAgent(input: {
       qualificationData: mapQualificationData(prospect.qualificationData),
       creneauRappel: prospect.creneauRappel ?? null,
     };
-    const priority = resolvePriority(prospect);
     const resumeSection = prospect.resume !== undefined && prospect.resume !== ''
       ? `📋 Résumé de l'appel :\n${prospect.resume}`
       : sectorConfig.buildCallSummaryText(summaryInput);
 
     const message = [
-      PRIORITY_HEADER[priority],
+      PRIORITY_HEADER[input.priority],
       '',
       `👤 ${prospectNom || 'Prospect inconnu'}`,
       `📞 ${prospectNumero || 'Numéro non renseigné'}`,
       '',
       resumeSection,
     ].join('\n');
+
+    if (process.env.SMS_MOCK === 'true') {
+      logToolEvent(`[SMS MOCK] → ${agency.agentPhone}\n${message}`, {
+        agentPhone: agency.agentPhone,
+        prospectId: input.prospectId,
+      });
+      return { success: true };
+    }
 
     const twilioConfig = getTwilioConfig();
     if (twilioConfig === null) {

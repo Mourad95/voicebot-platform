@@ -14,10 +14,12 @@ export async function saveSummary(
 ): Promise<ToolResult> {
   try {
     if (!isValidUuid(input.prospectId)) {
+      logToolEvent('saveSummary: invalid UUID', { prospectId: input.prospectId });
       return { success: false, error: 'Invalid prospect UUID' };
     }
 
     if (input.resume.trim() === '') {
+      logToolEvent('saveSummary: empty resume', { prospectId: input.prospectId });
       return { success: false, error: 'Resume cannot be empty' };
     }
 
@@ -28,6 +30,7 @@ export async function saveSummary(
     );
 
     if (prospect === null) {
+      logToolEvent('saveSummary: prospect not found', { prospectId: input.prospectId });
       return { success: false, error: 'Prospect not found' };
     }
 
@@ -35,6 +38,8 @@ export async function saveSummary(
 
     return { success: true };
   } catch (error: unknown) {
-    return { success: false, error: toToolError(error) };
+    const errorMessage = toToolError(error);
+    logToolEvent('saveSummary: error', { prospectId: input.prospectId, error: errorMessage });
+    return { success: false, error: errorMessage };
   }
 }
