@@ -103,6 +103,7 @@ async function dispatchToolCall(
       logToolEvent('notify_agent: args received', {
         prospectId: String(args.prospectId ?? ''),
         priority: String(priority ?? ''),
+        agentPhone: String(args.agentPhone ?? '<not sent>'),
       });
 
       if (prospectId === undefined) {
@@ -113,7 +114,7 @@ async function dispatchToolCall(
         return { success: false, error: 'Invalid or missing priority (expected haute|moyenne|basse)' };
       }
 
-      return notifyAgent({ prospectId, priority });
+      return notifyAgent({ prospectId, priority, agentPhone: asString(args.agentPhone) });
     }
 
     case 'manage_appointment': {

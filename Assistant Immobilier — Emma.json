@@ -35,7 +35,12 @@
       "name": "lead_score",
       "description": "Chaleur du lead.",
       "type": "enum",
-      "choices": ["hot", "warm", "cold", "non_qualifie"],
+      "choices": [
+        "hot",
+        "warm",
+        "cold",
+        "non_qualifie"
+      ],
       "required": false
     },
     {
@@ -91,7 +96,12 @@
       "name": "action_prise",
       "description": "Action finale.",
       "type": "enum",
-      "choices": ["transfert", "rappel_demande", "message_pris", "aucune"],
+      "choices": [
+        "transfert",
+        "rappel_demande",
+        "message_pris",
+        "aucune"
+      ],
       "required": false
     },
     {
@@ -111,7 +121,13 @@
   "begin_message_delay_ms": 500,
   "enable_backchannel": true,
   "backchannel_frequency": 0.8,
-  "backchannel_words": ["d'accord", "tres bien", "je vois", "oui", "parfait"],
+  "backchannel_words": [
+    "d'accord",
+    "tres bien",
+    "je vois",
+    "oui",
+    "parfait"
+  ],
   "denoising_mode": "noise-cancellation",
   "voicemail_option": {
     "action": {
@@ -270,7 +286,7 @@
         "type": "conversation",
         "instruction": {
           "type": "prompt",
-          "text": "ETAPE OBLIGATOIRE en DEUX questions distinctes, dans cet ordre :\n1. D'abord : \"Pour que le conseiller puisse vous recontacter, pourriez-vous me donner votre prenom et votre nom ?\" Attends la reponse complete (prenom + nom).\n2. Ensuite : \"Merci. Quel est votre numero de telephone, s'il vous plait ?\" Attends que le prospect dicte les 10 chiffres.\nNE JAMAIS proposer un numero toi-meme, NE JAMAIS inventer ou deviner un numero. Si le prospect a deja donne son nom plus tot, confirme-le mais demande quand meme le telephone. Ne passe a la suite qu'une fois LES DEUX collectes."
+          "text": "ETAPE OBLIGATOIRE en DEUX questions distinctes, dans cet ordre :\n1. D'abord : \"Pour que le conseiller puisse vous recontacter, pourriez-vous me donner votre prenom et votre nom ?\" Attends la reponse complete (prenom + nom).\n2. Ensuite : \"Merci. Quel est votre numero de telephone, s'il vous plait ?\" Attends que le prospect dicte les 10 chiffres.\n\nREGLE EPELLATION NOM : Si le prospect epelle son nom lettre par lettre (ex: A-U-M-A-R), tu DOIS reconstituer exactement les lettres enoncees et les ecrire telles quelles. Repete toujours le nom reconstitue pour confirmer : \"Donc votre nom s'ecrit [X], c'est bien ca ?\" Si le prospect corrige, reecris avec la correction. NE JAMAIS interpreter phonetiquement un nom epele.\n\nREGLE CONFIRMATION TELEPHONE (OBLIGATOIRE) : Une fois que le prospect a dicte son numero, tu DOIS le repeter UN CHIFFRE A LA FOIS, marque une pause entre chaque chiffre : \"Je note : zero... six... six... un... huit... sept... quatre... un... quatre... sept... c'est bien ca ?\" Attends IMPERATIVEMENT une confirmation explicite (oui / c'est ca / exactement) avant de continuer. Si le prospect corrige un ou plusieurs chiffres, repete l'integralite du numero corrige chiffre par chiffre et attends a nouveau la confirmation. NE JAMAIS passer a la suite sans confirmation du numero.\n\nNE JAMAIS proposer un numero toi-meme, NE JAMAIS inventer ou deviner un numero. Ne passe a la suite qu'une fois le nom ET le telephone confirmes par le prospect."
         },
         "display_position": {
           "x": 700,
@@ -516,7 +532,7 @@
           "agent_detection_timeout_ms": 30000,
           "private_handoff_option": {
             "type": "prompt",
-            "prompt": "Resume rapide : {{prospect_nom}}, lead chaud. Voir le SMS recu pour le detail."
+            "prompt": "Resume rapide : {{prospect_nom}}, lead chaud. Voir le SMS reçu pour le detail."
           }
         },
         "ignore_e164_validation": false,
@@ -558,7 +574,7 @@
         "speak_during_execution": true,
         "instruction": {
           "type": "static_text",
-          "text": "C'est noté, {{agent_nom}} ou un conseiller vous rappellera tres rapidement au numero communique. Merci de votre appel et belle journee !"
+          "text": "C'est noté, {{agent_nom}} ou un conseiller vous rappellera tres rapidement au numero communiqué. Merci de votre appel et belle journee !"
         },
         "display_position": {
           "x": 2000,
@@ -602,7 +618,10 @@
         "speak_during_execution": true,
         "parameters": {
           "type": "object",
-          "required": ["tool_name", "args"],
+          "required": [
+            "tool_name",
+            "args"
+          ],
           "properties": {
             "tool_name": {
               "type": "string",
@@ -610,7 +629,11 @@
             },
             "args": {
               "type": "object",
-              "required": ["agencyId", "telephone"],
+              "required": [
+                "agencyId",
+                "telephone",
+                "qualificationData"
+              ],
               "properties": {
                 "agencyId": {
                   "type": "string",
@@ -618,7 +641,8 @@
                 },
                 "nom": {
                   "type": "string",
-                  "description": "Prenom et nom du prospect si connus"
+                  "const": "{{prospect_nom}}",
+                  "description": "Prenom et nom du prospect extrait de la conversation"
                 },
                 "telephone": {
                   "type": "string",
@@ -626,7 +650,7 @@
                 },
                 "qualificationData": {
                   "type": "object",
-                  "description": "Donnees de qualification du prospect",
+                  "description": "OBLIGATOIRE. Compile toutes les donnees collectees durant la qualification. Inclure tous les champs non vides repondus par le prospect.",
                   "properties": {
                     "leadType": {
                       "type": "string",
@@ -709,7 +733,10 @@
         "speak_during_execution": false,
         "parameters": {
           "type": "object",
-          "required": ["tool_name", "args"],
+          "required": [
+            "tool_name",
+            "args"
+          ],
           "properties": {
             "tool_name": {
               "type": "string",
@@ -717,7 +744,10 @@
             },
             "args": {
               "type": "object",
-              "required": ["prospectId", "resume"],
+              "required": [
+                "prospectId",
+                "resume"
+              ],
               "properties": {
                 "prospectId": {
                   "type": "string",
@@ -750,7 +780,10 @@
         "speak_during_execution": false,
         "parameters": {
           "type": "object",
-          "required": ["tool_name", "args"],
+          "required": [
+            "tool_name",
+            "args"
+          ],
           "properties": {
             "tool_name": {
               "type": "string",
@@ -758,7 +791,11 @@
             },
             "args": {
               "type": "object",
-              "required": ["prospectId", "priority"],
+              "required": [
+                "prospectId",
+                "priority",
+                "agentPhone"
+              ],
               "properties": {
                 "prospectId": {
                   "type": "string",
@@ -766,8 +803,17 @@
                 },
                 "priority": {
                   "type": "string",
-                  "enum": ["haute", "moyenne", "basse"],
+                  "enum": [
+                    "haute",
+                    "moyenne",
+                    "basse"
+                  ],
                   "description": "Priorite du lead pour le conseiller. 'haute' = RDV confirme OU lead chaud avec delai urgent et projet concret (acheter/vendre/louer rapidement avec budget defini). 'moyenne' = lead qualifie avec rappel demande ou interesse mais sans urgence immediate. 'basse' = lead peu qualifie, juste curieux, sans projet concret ou sans informations cles collectees."
+                },
+                "agentPhone": {
+                  "type": "string",
+                  "const": "{{agent_phone}}",
+                  "description": "Numero de telephone de l agent a notifier"
                 }
               }
             }
@@ -782,14 +828,15 @@
     },
     "tool_call_strict_mode": true,
     "default_dynamic_variables": {
-      "agence_nom": "Orpi Cergy",
+      "agence_nom": "Monsieur Dejan de weelodge",
       "agent_nom": "Gérald",
       "secteur_agence": "Cergy-Pontoise et environs",
       "horaires_agence": "lundi au vendredi 9h-19h, samedi 10h-13h",
       "numero_transfert": "+33600000000",
       "webhook_url": "https://apache-spoiled-contusion.ngrok-free.dev",
       "agency_id": "2c25ed9c-218e-4e13-95d7-6a86c43a9c14",
-      "caller_phone": ""
+      "caller_phone": "",
+      "agent_phone": "+33667433689"
     },
     "knowledge_base_ids": [],
     "is_published": false

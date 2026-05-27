@@ -23,6 +23,18 @@ export type SaveProspectInput = {
   readonly callId?: string;
 };
 
+function toTitleCase(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function normalizeName(value: string | undefined): string | undefined {
+  if (!value || value.trim() === '') return undefined;
+  return toTitleCase(value);
+}
+
 function parseCreneauRappel(value: string | undefined): Date | undefined {
   if (value === undefined || value.trim() === '') {
     return undefined;
@@ -76,7 +88,7 @@ export async function saveProspect(
 
     const prospect = await Prospect.create({
       agencyId: agencyObjectId,
-      nom: input.nom,
+      nom: normalizeName(input.nom),
       telephone: input.telephone,
       qualificationData: toQualificationMap(input.qualificationData),
       creneauRappel,

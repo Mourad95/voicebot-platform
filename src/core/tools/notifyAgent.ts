@@ -1,4 +1,3 @@
-
 import { getSector } from "../../sectors";
 import type { QualificationData } from "../../types/qualification.types";
 import type { IAgencyDocument } from "../models/Agency";
@@ -29,40 +28,46 @@ function isPopulatedAgency(agency: unknown): agency is IAgencyDocument {
   );
 }
 
-export const PRIORITIES = ['haute', 'moyenne', 'basse'] as const;
+export const PRIORITIES = ["haute", "moyenne", "basse"] as const;
 export type Priority = (typeof PRIORITIES)[number];
 
 export function isPriority(value: unknown): value is Priority {
-  return typeof value === 'string' && (PRIORITIES as readonly string[]).includes(value);
+  return (
+    typeof value === "string" &&
+    (PRIORITIES as readonly string[]).includes(value)
+  );
 }
 
 const PRIORITY_BADGE: Record<Priority, string> = {
-  haute:   '*** LEAD CHAUD ***',
-  moyenne: '** RAPPEL **',
-  basse:   '* A recontacter *',
+  haute: "Priorité : Haute",
+  moyenne: "Priorité : Moyenne",
+  basse: "Priorité : Basse",
 };
 
 const PRIORITY_CTA: Record<Priority, string> = {
-  haute:   '=> A rappeler maintenant !',
-  moyenne: '=> A rappeler dans la journee',
-  basse:   '=> A recontacter quand possible',
+  haute: "=> Rappeler maintenant",
+  moyenne: "=> Rappeler dans la journee",
+  basse: "=> Recontacter dès que possible",
 };
 
 const QUALIF_LABELS: Record<string, string> = {
-  projet:        'Projet',
-  leadType:      'Projet',
-  typeBien:      'Bien',
-  budget:        'Budget',
-  budgetOuPrix:  'Budget',
-  delai:         'Delai',
-  secteur:       'Zone',
-  adresseBien:   'Adresse',
-  superficie:    'Surface',
-  nbPieces:      'Pieces',
-  creneauRappel: 'Rappel',
+  projet: "Projet",
+  leadType: "Projet",
+  typeBien: "Bien",
+  budget: "Budget",
+  budgetOuPrix: "Budget",
+  financement: "Financement",
+  accordBanque: "Accord banque",
+  accord_banque: "Accord banque",
+  delai: "Delai",
+  secteur: "Zone",
+  adresseBien: "Adresse",
+  superficie: "Surface",
+  nbPieces: "Pieces",
+  creneauRappel: "Rappel",
 };
 
-const SEEN_KEYS = new Set(['creneauRappel']);
+const SEEN_KEYS = new Set(["creneauRappel"]);
 
 function formatQualifFields(qualificationData: QualificationData): string {
   const seen = new Set(SEEN_KEYS);
@@ -71,12 +76,12 @@ function formatQualifFields(qualificationData: QualificationData): string {
   for (const [key, label] of Object.entries(QUALIF_LABELS)) {
     if (seen.has(key)) continue;
     const value = qualificationData[key];
-    if (!value || value === 'inconnu' || value === 'non précisé') continue;
+    if (!value || value === "inconnu" || value === "non précisé") continue;
     lines.push(`${label} : ${value}`);
     seen.add(key);
   }
 
-  return lines.join('\n');
+  return lines.join("\n");
 }
 
 function buildSmsMessage(params: {
@@ -89,23 +94,23 @@ function buildSmsMessage(params: {
 }): string {
   const qualifBlock = formatQualifFields(params.qualificationData);
   const lines: string[] = [
-    `${PRIORITY_BADGE[params.priority]} Emma`,
-    `${params.nom || 'Prospect inconnu'} | ${params.telephone || 'Non renseigne'}`,
+    PRIORITY_BADGE[params.priority],
+    `${params.nom || "Prospect inconnu"} | ${params.telephone || "Non renseigne"}`,
   ];
 
   if (qualifBlock) {
-    lines.push('', qualifBlock);
+    lines.push(qualifBlock);
   }
 
-  lines.push('', `> ${params.resume}`);
+  lines.push(`${params.resume}`);
 
   if (params.creneauRappel) {
-    lines.push(`> Rappel: ${params.creneauRappel}`);
+    lines.push(`Rappel: ${params.creneauRappel}`);
   }
 
-  lines.push('', PRIORITY_CTA[params.priority]);
+  lines.push("", PRIORITY_CTA[params.priority]);
 
-  return lines.join('\n');
+  return lines.join("\n");
 }
 
 function getTwilioConfig(): {
@@ -127,10 +132,13 @@ function getTwilioConfig(): {
 export async function notifyAgent(input: {
   readonly prospectId: string;
   readonly priority: Priority;
+  readonly agentPhone?: string;
 }): Promise<NotifyAgentResult> {
   try {
     if (!isValidUuid(input.prospectId)) {
-      logToolEvent("notifyAgent: invalid UUID", { prospectId: input.prospectId });
+      logToolEvent("notifyAgent: invalid UUID", {
+        prospectId: input.prospectId,
+      });
       return { success: false, error: "Invalid prospect UUID" };
     }
 
@@ -145,6 +153,7 @@ export async function notifyAgent(input: {
     }
 
     const agency = prospect.agencyId;
+    const recipientPhone = input.agentPhone?.trim() || agency.agentPhone;
     const sectorConfig = getSector(agency.sector);
     const prospectNom = prospect.nom ?? "";
     const prospectNumero = prospect.telephone ?? "";
@@ -154,9 +163,10 @@ export async function notifyAgent(input: {
       qualificationData: mapQualificationData(prospect.qualificationData),
       creneauRappel: prospect.creneauRappel ?? null,
     };
-    const resume = prospect.resume !== undefined && prospect.resume !== ''
-      ? prospect.resume
-      : sectorConfig.buildCallSummaryText(summaryInput);
+    const resume =
+      prospect.resume !== undefined && prospect.resume !== ""
+        ? prospect.resume
+        : sectorConfig.buildCallSummaryText(summaryInput);
 
     const message = buildSmsMessage({
       priority: input.priority,
@@ -164,12 +174,13 @@ export async function notifyAgent(input: {
       telephone: prospectNumero,
       qualificationData: mapQualificationData(prospect.qualificationData),
       resume,
-      creneauRappel: prospect.creneauRappel != null ? String(prospect.creneauRappel) : null,
+      creneauRappel:
+        prospect.creneauRappel != null ? String(prospect.creneauRappel) : null,
     });
 
-    if (process.env.SMS_MOCK === 'true') {
-      logToolEvent(`[SMS MOCK] → ${agency.agentPhone}\n${message}`, {
-        agentPhone: agency.agentPhone,
+    if (process.env.SMS_MOCK === "true") {
+      logToolEvent(`[SMS MOCK] → ${recipientPhone}\n${message}`, {
+        agentPhone: recipientPhone,
         prospectId: input.prospectId,
       });
       return { success: true };
@@ -180,18 +191,18 @@ export async function notifyAgent(input: {
       return { success: false, error: "Twilio configuration is missing" };
     }
 
-    const Twilio = (await import('twilio')).default;
+    const Twilio = (await import("twilio")).default;
     const client = Twilio(twilioConfig.sid, twilioConfig.token);
 
     const twilioMessage = await client.messages.create({
       body: message,
       from: twilioConfig.from,
-      to: agency.agentPhone,
+      to: recipientPhone,
     });
 
-    logToolEvent('notifyAgent: Twilio SMS sent', {
+    logToolEvent("notifyAgent: Twilio SMS sent", {
       prospectId: input.prospectId,
-      agentPhone: agency.agentPhone,
+      agentPhone: recipientPhone,
       messageSid: twilioMessage.sid,
       status: twilioMessage.status,
     });
@@ -199,7 +210,7 @@ export async function notifyAgent(input: {
     return { success: true };
   } catch (error: unknown) {
     const errorMessage = toToolError(error);
-    logToolEvent('notifyAgent: Twilio request failed', {
+    logToolEvent("notifyAgent: Twilio request failed", {
       prospectId: input.prospectId,
       error: errorMessage,
     });
