@@ -1,5 +1,4 @@
 import { getSector } from "../../sectors";
-import type { QualificationData } from "../../types/qualification.types";
 import type { IAgencyDocument } from "../models/Agency";
 import { findProspectByUuid } from "../persistence/resolve-by-uuid";
 import { isValidUuid } from "../utils/uuid";
@@ -9,16 +8,6 @@ import { toToolError } from "./tool-result.types";
 
 export type NotifyAgentResult = ToolResult;
 
-function mapQualificationData(
-  qualificationData: Map<string, string> | undefined,
-): QualificationData {
-  if (qualificationData === undefined) {
-    return {};
-  }
-
-  return Object.fromEntries(qualificationData.entries());
-}
-
 function isPopulatedAgency(agency: unknown): agency is IAgencyDocument {
   return (
     typeof agency === "object" &&
@@ -26,6 +15,10 @@ function isPopulatedAgency(agency: unknown): agency is IAgencyDocument {
     "agentPhone" in agency &&
     "sector" in agency
   );
+}
+
+function isE164(value: string | undefined): value is string {
+  return typeof value === 'string' && /^\+[1-9]\d{7,14}$/.test(value);
 }
 
 export const PRIORITIES = ["haute", "moyenne", "basse"] as const;
@@ -38,74 +31,37 @@ export function isPriority(value: unknown): value is Priority {
   );
 }
 
-const PRIORITY_BADGE: Record<Priority, string> = {
-  haute: "Priorité : Haute",
-  moyenne: "Priorité : Moyenne",
-  basse: "Priorité : Basse",
+const PRIORITY_HEADER: Record<Priority, string> = {
+  haute: "PRIORITE HAUTE - Lead chaud",
+  moyenne: "PRIORITE MOYENNE - A rappeler",
+  basse: "PRIORITE BASSE - Lead froid",
 };
 
 const PRIORITY_CTA: Record<Priority, string> = {
-  haute: "=> Rappeler maintenant",
-  moyenne: "=> Rappeler dans la journee",
-  basse: "=> Recontacter dès que possible",
+  haute: "Tres motive - rappeler en priorite",
+  moyenne: "Interesse - rappeler dans la journee",
+  basse: "A suivre - recontacter quand possible",
 };
-
-const QUALIF_LABELS: Record<string, string> = {
-  projet: "Projet",
-  leadType: "Projet",
-  typeBien: "Bien",
-  budget: "Budget",
-  budgetOuPrix: "Budget",
-  financement: "Financement",
-  accordBanque: "Accord banque",
-  accord_banque: "Accord banque",
-  delai: "Delai",
-  secteur: "Zone",
-  adresseBien: "Adresse",
-  superficie: "Surface",
-  nbPieces: "Pieces",
-  creneauRappel: "Rappel",
-};
-
-const SEEN_KEYS = new Set(["creneauRappel"]);
-
-function formatQualifFields(qualificationData: QualificationData): string {
-  const seen = new Set(SEEN_KEYS);
-  const lines: string[] = [];
-
-  for (const [key, label] of Object.entries(QUALIF_LABELS)) {
-    if (seen.has(key)) continue;
-    const value = qualificationData[key];
-    if (!value || value === "inconnu" || value === "non précisé") continue;
-    lines.push(`${label} : ${value}`);
-    seen.add(key);
-  }
-
-  return lines.join("\n");
-}
 
 function buildSmsMessage(params: {
   readonly priority: Priority;
   readonly nom: string;
   readonly telephone: string;
-  readonly qualificationData: QualificationData;
   readonly resume: string;
   readonly creneauRappel: string | null;
 }): string {
-  const qualifBlock = formatQualifFields(params.qualificationData);
+  const nomDisplay = params.nom ? params.nom.toUpperCase() : "PROSPECT INCONNU";
   const lines: string[] = [
-    PRIORITY_BADGE[params.priority],
-    `${params.nom || "Prospect inconnu"} | ${params.telephone || "Non renseigne"}`,
+    PRIORITY_HEADER[params.priority],
+    "",
+    nomDisplay,
+    params.telephone || "Non renseigne",
+    "",
+    params.resume,
   ];
 
-  if (qualifBlock) {
-    lines.push(qualifBlock);
-  }
-
-  lines.push(`${params.resume}`);
-
   if (params.creneauRappel) {
-    lines.push(`Rappel: ${params.creneauRappel}`);
+    lines.push("", `Rappel souhaite : ${params.creneauRappel}`);
   }
 
   lines.push("", PRIORITY_CTA[params.priority]);
@@ -153,14 +109,14 @@ export async function notifyAgent(input: {
     }
 
     const agency = prospect.agencyId;
-    const recipientPhone = input.agentPhone?.trim() || agency.agentPhone;
+    const recipientPhone = isE164(input.agentPhone) ? input.agentPhone : agency.agentPhone;
     const sectorConfig = getSector(agency.sector);
     const prospectNom = prospect.nom ?? "";
     const prospectNumero = prospect.telephone ?? "";
     const summaryInput = {
       nom: prospectNom,
       telephone: prospectNumero,
-      qualificationData: mapQualificationData(prospect.qualificationData),
+      qualificationData: Object.fromEntries(prospect.qualificationData?.entries() ?? []),
       creneauRappel: prospect.creneauRappel ?? null,
     };
     const resume =
@@ -172,7 +128,6 @@ export async function notifyAgent(input: {
       priority: input.priority,
       nom: prospectNom,
       telephone: prospectNumero,
-      qualificationData: mapQualificationData(prospect.qualificationData),
       resume,
       creneauRappel:
         prospect.creneauRappel != null ? String(prospect.creneauRappel) : null,

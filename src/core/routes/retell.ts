@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 
 import { getAvailableSlots } from '../tools/getAvailableSlots';
+import { getListing } from '../tools/getListing';
 import { logToolEvent } from '../tools/tool-log';
 import {
   manageAppointment,
@@ -77,6 +78,17 @@ async function dispatchToolCall(
   const { tool_name: toolName, args, call_id: callId } = body;
 
   switch (toolName) {
+    case 'get_listing': {
+      const agencyId = asString(args.agencyId);
+      const reference = asString(args.reference);
+
+      if (agencyId === undefined || reference === undefined) {
+        return { success: false, error: 'Missing agencyId or reference in args' };
+      }
+
+      return getListing({ agencyId, reference });
+    }
+
     case 'get_available_slots': {
       const agencyId = asString(args.agencyId);
 
