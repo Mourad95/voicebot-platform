@@ -74,7 +74,7 @@ seed: mongo ## Seed DB depuis le Mac (SECTOR=immo par défaut)
 
 ## ── Déploiement ─────────────────────────────────────────────────
 
-rebuild-api: mongo ## [CI] Rebuild + redémarre l'API (alias de api-rebuild pour le workflow)
+rebuild-api: ## [CI] Rebuild + redémarre l'API uniquement (Mongo non touché)
 	$(DOCKER_COMPOSE) build --no-cache app
 	$(DOCKER_COMPOSE) up -d --force-recreate app
 
