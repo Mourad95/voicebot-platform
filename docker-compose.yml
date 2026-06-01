@@ -4,7 +4,7 @@ networks:
 
 services:
   mongo:
-    image: mongo:latest
+    image: mongo:8
     restart: always
     container_name: voicebot-mongo
     networks:
@@ -34,6 +34,12 @@ services:
       - .env
     environment:
       MONGODB_URI: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:27017/voicebot?authSource=admin
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     depends_on:
       mongo:
         condition: service_healthy

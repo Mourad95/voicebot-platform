@@ -1,23 +1,17 @@
-import 'dotenv/config';
-
 import express from 'express';
 import mongoose from 'mongoose';
 
+import { config } from './config';
+import { applySecurityMiddleware } from './core/middleware/security';
 import { validateRetell } from './core/middleware/validateRetell';
 import { retellRouter } from './core/routes/retell';
 import { retellEventsRouter } from './core/routes/retellEvents';
 import { retellInboundRouter } from './core/routes/retellInbound';
 import { vonageRouter } from './core/routes/vonage';
 
-const PORT = Number(process.env.PORT ?? 3000);
-const NODE_ENV = process.env.NODE_ENV ?? 'development';
-const SECTOR = process.env.SECTOR ?? process.env.NICHE ?? 'immo';
-const MONGODB_URI = process.env.MONGODB_URI ?? "";
-const PUBLIC_URL = process.env.PUBLIC_URL ?? '';
-
 async function connectDatabase(): Promise<void> {
   try {
-    await mongoose.connect(MONGODB_URI, {
+    await mongoose.connect(config.mongodbUri, {
       serverSelectionTimeoutMS: 5000,
     });
   } catch (error: unknown) {
@@ -54,14 +48,15 @@ async function startServer(): Promise<void> {
   await connectDatabase();
 
   const app = express();
+  applySecurityMiddleware(app);
   const retellRawBodyParser = express.raw({ type: 'application/json' });
 
   app.get('/health', (_req, res) => {
     res.status(200).json({
       status: 'ok',
       timestamp: new Date().toISOString(),
-      env: NODE_ENV,
-      sector: SECTOR,
+      env: config.nodeEnv,
+      sector: config.sector,
     });
   });
 
@@ -75,14 +70,14 @@ async function startServer(): Promise<void> {
   app.use('/webhook/vonage', express.json(), vonageRouter);
   app.use('/webhook/retell', retellRawBodyParser, validateRetell, retellRouter);
 
-  app.listen(PORT, () => {
+  app.listen(config.port, () => {
     process.stdout.write(
-      `🚀 Serveur démarré - port ${PORT} - sector ${SECTOR} - env ${NODE_ENV}\n`,
+      `🚀 Serveur démarré - port ${config.port} - sector ${config.sector} - env ${config.nodeEnv}\n`,
     );
-    if (PUBLIC_URL) {
+    if (config.publicUrl) {
       process.stdout.write(
-        `[VONAGE] Inbound URL → ${PUBLIC_URL}/webhook/vonage/inbound\n` +
-        `[VONAGE] Status URL  → ${PUBLIC_URL}/webhook/vonage/status\n`,
+        `[VONAGE] Inbound URL → ${config.publicUrl}/webhook/vonage/inbound\n` +
+        `[VONAGE] Status URL  → ${config.publicUrl}/webhook/vonage/status\n`,
       );
     }
   });

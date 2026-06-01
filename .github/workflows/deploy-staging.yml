@@ -1,0 +1,21 @@
+name: Deploy Staging
+
+on:
+  push:
+    branches: [staging]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST_STAGING }}
+          username: ${{ secrets.SSH_USER_STAGING }}
+          key: ${{ secrets.SSH_PRIVATE_KEY_STAGING }}
+          script_stop: true
+          script: |
+            set -ex
+            cd "${{ secrets.DEPLOY_PATH_STAGING }}"
+            make deploy-preprod

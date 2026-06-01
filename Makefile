@@ -9,8 +9,9 @@ ifneq (,$(wildcard .env))
   export
 endif
 
-.PHONY: help install mongo up down logs ps build dev start seed seed-docker \
-	api api-build api-rebuild api-logs api-stop
+.PHONY: help install lint type-check mongo up down logs ps build dev start seed seed-docker \
+	api api-build api-rebuild api-logs api-stop \
+	deploy-prod deploy-preprod rebuild-api
 
 help: ## Affiche les commandes disponibles
 	@echo "Commandes Make — voicebot-platform"
@@ -21,6 +22,12 @@ help: ## Affiche les commandes disponibles
 
 install: ## Installe les dépendances npm
 	npm ci
+
+lint: ## Vérifie le style (eslint)
+	npm run lint
+
+type-check: ## Vérifie les types TypeScript (tsc --noEmit)
+	npm run type-check
 
 mongo: ## Démarre MongoDB (Docker, port 27017, auth)
 	$(DOCKER_COMPOSE) up -d mongo
@@ -64,6 +71,24 @@ start: build ## Serveur compilé (node dist, lit DATABASE_URL depuis .env)
 
 seed: mongo ## Seed DB depuis le Mac (SECTOR=immo par défaut)
 	SECTOR=$(SECTOR) npm run seed
+
+## ── Déploiement ─────────────────────────────────────────────────
+
+rebuild-api: mongo ## [CI] Rebuild + redémarre l'API (alias de api-rebuild pour le workflow)
+	$(DOCKER_COMPOSE) build --no-cache app
+	$(DOCKER_COMPOSE) up -d --force-recreate app
+
+deploy-prod: ## [CI] Déploiement prod : pull, rebuild API, laisse Mongo intact
+	git fetch origin
+	git reset --hard origin/main
+	$(MAKE) rebuild-api
+
+deploy-preprod: ## [CI] Déploiement preprod : pull, rebuild API, laisse Mongo intact
+	git fetch origin
+	git reset --hard origin/staging
+	$(MAKE) rebuild-api
+
+## ── Seed ─────────────────────────────────────────────────────────
 
 seed-docker: mongo ## Seed dans le réseau Docker (hostname mongo)
 	@NETWORK=$$(docker inspect -f '{{range $$k, $$v := .NetworkSettings.Networks}}{{$$k}}{{end}}' $$($(DOCKER_COMPOSE) ps -q mongo)); \

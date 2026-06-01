@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 
+import { config } from '../../config';
 import { verifyRetellSignature } from '../security/verify-retell-signature';
 
 function getRawBodyString(body: unknown): string | null {
@@ -45,7 +46,6 @@ export function validateRetell(
   res: Response,
   next: NextFunction,
 ): void {
-  const nodeEnv = process.env.NODE_ENV ?? 'development';
   const rawBody = getRawBodyString(req.body);
 
   if (rawBody === null) {
@@ -53,13 +53,12 @@ export function validateRetell(
     return;
   }
 
-  if (nodeEnv !== 'development') {
-    const apiKey = process.env.RETELL_API_KEY ?? '';
+  if (config.nodeEnv !== 'development') {
     const signature = req.header('x-retell-signature');
 
     const isValid = verifyRetellSignature({
       rawBody,
-      apiKey,
+      apiKey: config.retellApiKey,
       signature,
     });
 

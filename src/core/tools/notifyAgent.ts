@@ -1,3 +1,4 @@
+import { config } from "../../config";
 import { getSector } from "../../sectors";
 import type { IAgencyDocument } from "../models/Agency";
 import { findProspectByUuid } from "../persistence/resolve-by-uuid";
@@ -73,16 +74,12 @@ function getTwilioConfig(): {
   sid: string;
   token: string;
   from: string;
-} | null {
-  const sid = process.env.TWILIO_SID;
-  const token = process.env.TWILIO_TOKEN;
-  const from = process.env.TWILIO_PHONE;
-
-  if (!sid || !token || !from) {
-    return null;
-  }
-
-  return { sid, token, from };
+} {
+  return {
+    sid: config.twilio.sid,
+    token: config.twilio.token,
+    from: config.twilio.phone,
+  };
 }
 
 export async function notifyAgent(input: {
@@ -133,7 +130,7 @@ export async function notifyAgent(input: {
         prospect.creneauRappel != null ? String(prospect.creneauRappel) : null,
     });
 
-    if (process.env.SMS_MOCK === "true") {
+    if (config.twilio.smsMock) {
       logToolEvent(`[SMS MOCK] → ${recipientPhone}\n${message}`, {
         agentPhone: recipientPhone,
         prospectId: input.prospectId,
@@ -142,10 +139,6 @@ export async function notifyAgent(input: {
     }
 
     const twilioConfig = getTwilioConfig();
-    if (twilioConfig === null) {
-      return { success: false, error: "Twilio configuration is missing" };
-    }
-
     const Twilio = (await import("twilio")).default;
     const client = Twilio(twilioConfig.sid, twilioConfig.token);
 
