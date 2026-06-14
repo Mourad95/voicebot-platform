@@ -76,6 +76,9 @@ async function startServer(): Promise<void> {
     );
     if (config.publicUrl) {
       process.stdout.write(
+        `[RETELL] Inbound URL → ${config.publicUrl}/webhook/retell/inbound\n` +
+        `[RETELL] Events URL  → ${config.publicUrl}/webhook/retell/events\n` +
+        `[RETELL] Tools URL   → ${config.publicUrl}/webhook/retell\n` +
         `[VONAGE] Inbound URL → ${config.publicUrl}/webhook/vonage/inbound\n` +
         `[VONAGE] Status URL  → ${config.publicUrl}/webhook/vonage/status\n`,
       );
