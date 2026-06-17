@@ -13,6 +13,10 @@ export interface IAgency {
   readonly name: string;
   readonly address?: string;
   readonly phone?: string;
+  readonly inboundNumber?: string;
+  readonly transferNumber?: string;
+  readonly businessHoursLabel?: string;
+  readonly sectorLabel?: string;
   readonly agentName: string;
   readonly agentPhone: string;
   readonly retellAgentId?: string;
@@ -39,6 +43,10 @@ const agencySchema = new Schema<IAgencyDocument>(
     name: { type: String, required: true },
     address: { type: String, required: false },
     phone: { type: String, required: false },
+    inboundNumber: { type: String, required: false, index: true },
+    transferNumber: { type: String, required: false },
+    businessHoursLabel: { type: String, required: false },
+    sectorLabel: { type: String, required: false },
     agentName: { type: String, required: true },
     agentPhone: { type: String, required: true },
     retellAgentId: { type: String, required: false },

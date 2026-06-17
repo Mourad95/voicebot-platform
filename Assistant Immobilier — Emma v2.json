@@ -1116,7 +1116,7 @@
     },
     "tool_call_strict_mode": true,
     "default_dynamic_variables": {
-      "agence_nom": "Monsieur Dejan de weelodge",
+      "agence_nom": "Agence immobiliere Emma",
       "agent_nom": "Gérald",
       "caller_phone": "",
       "webhook_url": "https://apache-spoiled-contusion.ngrok-free.dev",

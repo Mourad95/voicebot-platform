@@ -1,19 +1,32 @@
 import { Router, type Request, type Response } from 'express';
 
+import type { IAgencyDocument } from '../models/Agency';
 import { checkCallAdmission } from '../persistence/call-limits';
+import { findAgencyByInboundNumber } from '../persistence/resolve-by-uuid';
 
 const retellInboundRouter = Router();
 
-function getFromNumber(body: unknown): string | null {
+function getInboundField(body: unknown, field: 'from_number' | 'to_number'): string | null {
   if (typeof body !== 'object' || body === null || !('call_inbound' in body)) {
     return null;
   }
   const inbound = (body as { call_inbound: unknown }).call_inbound;
-  if (typeof inbound !== 'object' || inbound === null || !('from_number' in inbound)) {
+  if (typeof inbound !== 'object' || inbound === null || !(field in inbound)) {
     return null;
   }
-  const fromNumber = (inbound as { from_number: unknown }).from_number;
-  return typeof fromNumber === 'string' && fromNumber !== '' ? fromNumber : null;
+  const value = (inbound as Record<string, unknown>)[field];
+  return typeof value === 'string' && value !== '' ? value : null;
+}
+
+function buildAgencyVariables(agency: IAgencyDocument): Record<string, string> {
+  return {
+    agence_nom: agency.name,
+    agent_nom: agency.agentName,
+    agency_id: agency.uuid,
+    secteur_agence: agency.sectorLabel ?? '',
+    horaires_agence: agency.businessHoursLabel ?? '',
+    numero_transfert: agency.transferNumber ?? agency.agentPhone,
+  };
 }
 
 function getParisDateTime(): {
@@ -36,7 +49,8 @@ function getParisDateTime(): {
 }
 
 retellInboundRouter.post('/', async (req: Request, res: Response): Promise<void> => {
-  const fromNumber = getFromNumber(req.body);
+  const fromNumber = getInboundField(req.body, 'from_number');
+  const toNumber = getInboundField(req.body, 'to_number');
 
   // Garde-fou anti-abus : on refuse AVANT que l'agent LLM ne démarre (zéro token consommé).
   // En cas d'erreur DB, on laisse passer (fail-open) pour ne pas bloquer les appels légitimes.
@@ -58,11 +72,26 @@ retellInboundRouter.post('/', async (req: Request, res: Response): Promise<void>
   }
 
   const { currentHour, currentDay } = getParisDateTime();
-
-  const dynamicVariables = {
+  let dynamicVariables: Record<string, string> = {
     current_hour: currentHour,
     current_day: currentDay,
   };
+
+  // Résolution multi-agences : on injecte les variables de l'agence selon le numéro appelé.
+  // Si l'agence est introuvable, on retombe sur les default_dynamic_variables de l'agent Retell.
+  if (toNumber !== null) {
+    try {
+      const agency = await findAgencyByInboundNumber(toNumber);
+      if (agency !== null) {
+        dynamicVariables = { ...dynamicVariables, ...buildAgencyVariables(agency) };
+      } else {
+        process.stdout.write(`[RETELL inbound] no agency for to=${toNumber} (defaults used)\n`);
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      process.stderr.write(`[RETELL inbound] agency lookup failed (defaults used): ${message}\n`);
+    }
+  }
 
   process.stdout.write(
     `[RETELL inbound] dynamic_variables = ${JSON.stringify(dynamicVariables)}\n`,

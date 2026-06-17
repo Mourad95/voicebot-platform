@@ -6,6 +6,16 @@ import { Prospect } from '../models/Prospect';
 import { Slot } from '../models/Slot';
 import { isValidUuid } from '../utils/uuid';
 
+export async function findAgencyByInboundNumber(
+  inboundNumber: string,
+): Promise<IAgencyDocument | null> {
+  if (inboundNumber === '') {
+    return null;
+  }
+
+  return Agency.findOne({ inboundNumber, isActive: true });
+}
+
 export async function resolveAgencyObjectId(
   agencyUuid: string,
 ): Promise<Types.ObjectId | null> {
