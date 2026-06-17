@@ -52,6 +52,10 @@ retellInboundRouter.post('/', async (req: Request, res: Response): Promise<void>
   const fromNumber = getInboundField(req.body, 'from_number');
   const toNumber = getInboundField(req.body, 'to_number');
 
+  process.stdout.write(
+    `[RETELL inbound] reçu from=${fromNumber ?? 'null'} to=${toNumber ?? 'null'}\n`,
+  );
+
   // Garde-fou anti-abus : on refuse AVANT que l'agent LLM ne démarre (zéro token consommé).
   // En cas d'erreur DB, on laisse passer (fail-open) pour ne pas bloquer les appels légitimes.
   if (fromNumber !== null) {

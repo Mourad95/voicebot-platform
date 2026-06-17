@@ -1130,7 +1130,7 @@
       "y": 30
     },
     "is_published": false,
-    "flex_mode": true,
+    "flex_mode": false,
     "is_transfer_cf": false
   }
 }

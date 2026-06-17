@@ -9,11 +9,19 @@ import { isValidUuid } from '../utils/uuid';
 export async function findAgencyByInboundNumber(
   inboundNumber: string,
 ): Promise<IAgencyDocument | null> {
-  if (inboundNumber === '') {
+  const digits = inboundNumber.replace(/\D/g, '');
+  if (digits === '') {
     return null;
   }
 
-  return Agency.findOne({ inboundNumber, isActive: true });
+  // Robustesse au format envoyé par le téléphonie provider : avec ou sans '+',
+  // avec espaces, etc. On compare sur les variantes E.164 les plus probables.
+  const candidates = [inboundNumber, `+${digits}`, digits];
+
+  return Agency.findOne({
+    inboundNumber: { $in: candidates },
+    isActive: true,
+  });
 }
 
 export async function resolveAgencyObjectId(
