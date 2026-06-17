@@ -548,8 +548,8 @@
           "y": 342
         },
         "instruction": {
-          "type": "prompt",
-          "text": "Confirme au prospect que tout est bien enregistré et que {{agent_nom}} ou un conseiller le rappellera très rapidement. Demande poliment s'il y a autre chose avant de raccrocher. NE propose PAS le transfert de toi-même. Si le prospect demande EXPLICITEMENT à parler à quelqu'un maintenant ou à être mis en relation immédiatement, note-le pour déclencher le transfert."
+          "type": "static_text",
+          "text": "C'est noté, j'ai bien tout enregistré. {{agent_nom}} ou un conseiller vous rappellera rapidement. Souhaitez-vous autre chose ?"
         }
       },
       {
@@ -610,8 +610,8 @@
           "y": -138
         },
         "instruction": {
-          "type": "prompt",
-          "text": "\"Un conseiller est disponible. Souhaitez-vous que je vous le passe maintenant, ou préférez-vous qu'il vous rappelle ?\" Ne transfère QUE si le prospect accepte explicitement."
+          "type": "static_text",
+          "text": "Un conseiller est disponible. Souhaitez-vous que je vous le passe maintenant, ou préférez-vous qu'il vous rappelle ?"
         }
       },
       {
