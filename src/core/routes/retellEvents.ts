@@ -1,9 +1,11 @@
 import { Router, type Request, type Response } from 'express';
 
 import { Prospect } from '../models/Prospect';
+import { registerCallEnd, registerCallStart } from '../persistence/call-limits';
 
 export interface RetellCallPayload {
   readonly call_id: string;
+  readonly from_number?: string;
   readonly transcript?: string;
 }
 
@@ -70,12 +72,17 @@ retellEventsRouter.post('/', async (req: Request, res: Response): Promise<void> 
         process.stdout.write(
           `[RETELL] call_started - call_id: ${call.call_id} - ${new Date().toISOString()}\n`,
         );
+        await registerCallStart({
+          callId: call.call_id,
+          callerPhone: call.from_number ?? 'unknown',
+        });
         break;
 
       case 'call_ended':
         process.stdout.write(
           `[RETELL] call_ended - call_id: ${call.call_id} - ${new Date().toISOString()}\n`,
         );
+        await registerCallEnd(call.call_id);
         await updateProspectTranscript(call.call_id, call.transcript);
         break;
 
