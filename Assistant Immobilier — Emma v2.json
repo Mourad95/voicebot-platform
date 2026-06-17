@@ -120,18 +120,12 @@
     }
   ],
   "voice_id": "custom_voice_ed900fac446e9eb218f75e04e8",
-  "voice_temperature": 1.32,
-  "voice_speed": 1.04,
-  "enable_dynamic_voice_speed": true,
+  "voice_temperature": 1,
+  "voice_speed": 1,
+  "enable_dynamic_voice_speed": false,
   "volume": 1.34,
-  "enable_expressive_mode": true,
-  "expressive_emotion_tags": [
-    "empathetic",
-    "excited",
-    "sigh",
-    "clear throat",
-    "emphasis"
-  ],
+  "enable_expressive_mode": false,
+  "expressive_emotion_tags": [],
   "enable_backchannel": true,
   "backchannel_frequency": 0.8,
   "backchannel_words": [
@@ -142,7 +136,7 @@
     "parfait"
   ],
   "max_call_duration_ms": 180000,
-  "interruption_sensitivity": 0.65,
+  "interruption_sensitivity": 0.9,
   "ambient_sound": "summer-outdoor",
   "responsiveness": 1,
   "enable_dynamic_responsiveness": true,
@@ -992,7 +986,7 @@
               "properties": {
                 "resume": {
                   "type": "string",
-                  "description": "Resume de 2-3 phrases : type de projet, informations cles collectees, prochaine etape convenue"
+                  "description": "Resume FACTUEL de 1 a 2 phrases decrivant UNIQUEMENT le besoin du prospect et les informations cles collectees (type de projet, bien, secteur, budget/prix, delai, motivation). NE PAS ajouter de conclusion logistique du type 'sera rappele', 'un conseiller le contactera', ni de mention du rappel ou du transfert : ces aspects sont geres ailleurs. Decris seulement la demande, pas la suite."
                 },
                 "prospectId": {
                   "type": "string",
