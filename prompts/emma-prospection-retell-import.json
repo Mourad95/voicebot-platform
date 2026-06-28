@@ -1,0 +1,503 @@
+{
+  "agent_id": "",
+  "channel": "voice",
+  "last_modification_timestamp": 1782000000000,
+  "agent_name": "Emma Prospectrice — Flowcraft",
+  "response_engine": {
+    "type": "conversation-flow",
+    "version": 2,
+    "conversation_flow_id": ""
+  },
+  "language": "fr-FR",
+  "data_storage_setting": "everything",
+  "opt_in_signed_url": false,
+  "version": 2,
+  "base_version": 1,
+  "assigned_tags": [],
+  "is_published": false,
+  "post_call_analysis_model": "gpt-4.1",
+  "pii_config": {
+    "mode": "post_call",
+    "categories": []
+  },
+  "handbook_config": {
+    "default_personality": true,
+    "speech_normalization": true,
+    "ai_disclosure": true
+  },
+  "post_call_analysis_data": [
+    {
+      "name": "demo_booked",
+      "description": "True si une démo a été réservée avec un créneau.",
+      "type": "boolean",
+      "required": false
+    },
+    {
+      "name": "interest_level",
+      "description": "Niveau d'intérêt du prospect.",
+      "type": "enum",
+      "choices": [
+        "chaud",
+        "tiède",
+        "froid",
+        "rejet"
+      ],
+      "required": false
+    },
+    {
+      "name": "missed_calls_per_day",
+      "description": "Nombre estimé d'appels manqués par jour (réponse du prospect).",
+      "type": "string",
+      "required": false
+    },
+    {
+      "name": "call_outcome",
+      "description": "Issue finale de l'appel.",
+      "type": "enum",
+      "choices": [
+        "demo_booked",
+        "email_sent",
+        "repondeur",
+        "rejet",
+        "rappeler"
+      ],
+      "required": false
+    },
+    {
+      "name": "call_summary",
+      "type": "system-presets",
+      "description": "Résumé de l'appel."
+    }
+  ],
+  "voice_id": "cartesia-Emma",
+  "voice_temperature": 1,
+  "voice_speed": 1,
+  "enable_dynamic_voice_speed": false,
+  "volume": 1.34,
+  "enable_expressive_mode": false,
+  "expressive_emotion_tags": [],
+  "enable_backchannel": true,
+  "backchannel_frequency": 0.8,
+  "backchannel_words": [
+    "d'accord",
+    "très bien",
+    "je vois",
+    "oui",
+    "parfait",
+    "exactement"
+  ],
+  "max_call_duration_ms": 120000,
+  "interruption_sensitivity": 0.9,
+  "ambient_sound": "summer-outdoor",
+  "responsiveness": 1,
+  "enable_dynamic_responsiveness": true,
+  "begin_message_delay_ms": 500,
+  "allow_user_dtmf": true,
+  "allow_dtmf_interruption": false,
+  "user_dtmf_options": {},
+  "denoising_mode": "noise-cancellation",
+  "conversationFlow": {
+    "conversation_flow_id": "",
+    "version": 2,
+    "global_prompt": "## Identité\nTu es Emma, une assistante vocale IA créée par Flowcraft. Tu appelles des agences immobilières pour leur présenter Flowcraft — et ta conversation avec eux EST la démonstration du produit.\n\n## Mission\nDécrocher une démo personnalisée avec Mourad, le fondateur de Flowcraft. En 2 minutes maximum, tu dois montrer la valeur du produit et obtenir un créneau.\n\n## Règles d'or\n- Vouvoiement. Professionnelle et chaleureuse.\n- Tu es une IA : annonce-le fièrement, c'est le produit que tu vends.\n- Phrases courtes. UNE question à la fois. Jamais deux questions dans la même phrase.\n- Alternative close systématique : « Mardi 10h ou mercredi 14h — quelle option vous convient le mieux ? »\n- Si on te demande une documentation ou un email : « Rien ne remplace 30 secondes d'écoute. Laissez-moi vous montrer concrètement. »\n- Ne jamais insister plus de deux fois. Rester polie et prendre congé si refus clair.\n- Numéro de Mourad : 06 61 87 41 47 (à donner uniquement dans le message répondeur ou si explicitement demandé).\n\n## Posture\nTu n'es pas une commerciale insistante. Tu es une démonstration vivante. Ton objectif est de susciter la curiosité, pas de forcer la vente.",
+    "nodes": [
+      {
+        "name": "ACCROCHE",
+        "edges": [
+          {
+            "destination_node_id": "node-demo",
+            "id": "e-accroche-curieux",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Le prospect est curieux, engagé, ouvert, ou montre de l'intérêt pour écouter la démonstration"
+            }
+          },
+          {
+            "destination_node_id": "node-reticence",
+            "id": "e-accroche-occupe",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Le prospect est occupé, réticent, sceptique, pressé, mais reste en ligne et ne raccroche pas"
+            }
+          },
+          {
+            "destination_node_id": "node-fin-rejet",
+            "id": "e-accroche-rejet",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Le prospect rejette fermement, dit non catégoriquement, n'est pas du tout intéressé, ou raccroche"
+            }
+          },
+          {
+            "destination_node_id": "node-repondeur",
+            "id": "e-accroche-repondeur",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "C'est un répondeur ou une messagerie vocale (bip, tonalité, annonce de messagerie)"
+            }
+          }
+        ],
+        "start_speaker": "agent",
+        "id": "node-accroche",
+        "type": "conversation",
+        "display_position": {
+          "x": 0,
+          "y": 0
+        },
+        "responsiveness": 1,
+        "instruction": {
+          "type": "static_text",
+          "text": "Bonjour, je m'appelle Emma, je suis une assistante vocale. Je vous appelle de la part de Flowcraft. Je ne vais pas vous vendre quelque chose, je vais juste vous montrer ce que je sais faire. Vous avez 30 secondes ?"
+        }
+      },
+      {
+        "name": "DÉMO",
+        "edges": [
+          {
+            "destination_node_id": "node-qualification",
+            "id": "e-demo-done",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Le prospect a écouté la démonstration"
+            }
+          }
+        ],
+        "id": "node-demo",
+        "type": "conversation",
+        "display_position": {
+          "x": 300,
+          "y": -200
+        },
+        "instruction": {
+          "type": "static_text",
+          "text": "Ce que vous venez d'entendre — une conversation naturelle avec une IA — c'est exactement ce que Flowcraft fait pour les agences immobilières. Décrocher les appels manqués, qualifier les prospects, et envoyer une fiche SMS en moins de 30 secondes. 24h/24, 7j/7."
+        }
+      },
+      {
+        "name": "QUALIFICATION",
+        "edges": [
+          {
+            "destination_node_id": "node-closing",
+            "id": "e-qualif-interesse",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Le prospect est intéressé, réceptif, convaincu ou montre un intérêt clair pour Flowcraft"
+            }
+          },
+          {
+            "destination_node_id": "node-reticence",
+            "id": "e-qualif-hesitant",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Le prospect est hésitant, tiède, pas encore convaincu, ou émet des objections"
+            }
+          }
+        ],
+        "id": "node-qualification",
+        "type": "conversation",
+        "display_position": {
+          "x": 600,
+          "y": -200
+        },
+        "instruction": {
+          "type": "prompt",
+          "text": "Pose ces 3 questions, UNE à la fois, dans l'ordre. Attends la réponse du prospect avant de passer à la suivante. Si le prospect ne sait pas ou refuse de répondre, note-le et passe à la question suivante sans insister.\n\n1. « En moyenne, combien d'appels pensez-vous manquer par jour ? »\n2. « Avez-vous quelqu'un qui décroche en dehors des heures de bureau ? »\n3. « Un appel manqué, c'est potentiellement un mandat perdu. Ça vous parle ? »\n\nAprès les 3 questions, évalue la réaction globale du prospect. S'il est réceptif et engagé, oriente vers la proposition de démo. S'il est hésitant ou tiède, oriente vers le traitement des réticences."
+        }
+      },
+      {
+        "name": "CLOSING",
+        "edges": [
+          {
+            "destination_node_id": "node-fin-demo-bookee",
+            "id": "e-closing-creneau",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Le prospect donne un créneau ou accepte mardi 10h ou mercredi 14h, ou propose une autre date"
+            }
+          },
+          {
+            "destination_node_id": "node-reticence",
+            "id": "e-closing-doc",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Le prospect demande de la documentation, dit 'envoyez-moi un email', 'envoyez-moi une doc', ou refuse de fixer un rendez-vous maintenant"
+            }
+          }
+        ],
+        "id": "node-closing",
+        "type": "conversation",
+        "display_position": {
+          "x": 900,
+          "y": -200
+        },
+        "instruction": {
+          "type": "static_text",
+          "text": "Mourad, notre fondateur, peut vous montrer une démo personnalisée. Mardi 10h ou mercredi 14h — quelle option vous convient le mieux ?"
+        }
+      },
+      {
+        "name": "RÉTICENCE",
+        "edges": [
+          {
+            "destination_node_id": "node-demo",
+            "id": "e-reticence-ok",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Le prospect accepte d'écouter la démonstration, dit oui, OK, allez-y, ou montre une ouverture"
+            }
+          },
+          {
+            "destination_node_id": "node-fin-email",
+            "id": "e-reticence-email",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Le prospect insiste pour recevoir un email, de la documentation, ou une brochure plutôt qu'une démo live"
+            }
+          },
+          {
+            "destination_node_id": "node-fin-rejet",
+            "id": "e-reticence-refus",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Le prospect refuse à nouveau, ne veut pas continuer la conversation, ou exprime un désintérêt clair"
+            }
+          }
+        ],
+        "id": "node-reticence",
+        "type": "conversation",
+        "display_position": {
+          "x": 300,
+          "y": 200
+        },
+        "instruction": {
+          "type": "static_text",
+          "text": "Je comprends. Une suggestion : laissez-moi 30 secondes vous montrer concrètement. Si ça ne vous parle pas, je ne vous dérange plus."
+        }
+      },
+      {
+        "name": "RÉPONDEUR",
+        "edges": [
+          {
+            "destination_node_id": "node-fin-repondeur",
+            "id": "e-repondeur-done",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Message laissé sur le répondeur"
+            }
+          }
+        ],
+        "id": "node-repondeur",
+        "type": "conversation",
+        "display_position": {
+          "x": 0,
+          "y": -300
+        },
+        "instruction": {
+          "type": "static_text",
+          "text": "Bonjour, Emma de Flowcraft. Nous aidons les agences à ne plus perdre leurs appels — en décrochant 24h/24 avec une IA naturelle. Mourad peut vous montrer une démo au 06 61 87 41 47. Belle journée."
+        }
+      },
+      {
+        "tool_id": "tool_save_prospection",
+        "instruction": {
+          "type": "static_text",
+          "text": "Merci d'avoir pris le temps. Belle journée."
+        },
+        "name": "FIN REJET",
+        "edges": [
+          {
+            "destination_node_id": "node-end-after-save",
+            "id": "e-fin-rejet-save",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Toujours"
+            }
+          }
+        ],
+        "id": "node-fin-rejet",
+        "type": "function",
+        "tool_type": "local",
+        "speak_during_execution": true,
+        "display_position": {
+          "x": 300,
+          "y": 500
+        },
+        "wait_for_result": true
+      },
+      {
+        "tool_id": "tool_save_prospection",
+        "instruction": {
+          "type": "static_text",
+          "text": "Parfait, Mourad vous appelle pour la démo. Belle journée !"
+        },
+        "name": "FIN DÉMO BOOKÉE",
+        "edges": [
+          {
+            "destination_node_id": "node-end-after-save",
+            "id": "e-fin-demo-save",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Toujours"
+            }
+          }
+        ],
+        "id": "node-fin-demo-bookee",
+        "type": "function",
+        "tool_type": "local",
+        "speak_during_execution": true,
+        "display_position": {
+          "x": 1200,
+          "y": -200
+        },
+        "wait_for_result": true
+      },
+      {
+        "tool_id": "tool_save_prospection",
+        "instruction": {
+          "type": "static_text",
+          "text": "Très bien, je transmets votre email à Mourad. Belle journée !"
+        },
+        "name": "FIN EMAIL",
+        "edges": [
+          {
+            "destination_node_id": "node-end-after-save",
+            "id": "e-fin-email-save",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Toujours"
+            }
+          }
+        ],
+        "id": "node-fin-email",
+        "type": "function",
+        "tool_type": "local",
+        "speak_during_execution": true,
+        "display_position": {
+          "x": 600,
+          "y": 500
+        },
+        "wait_for_result": true
+      },
+      {
+        "tool_id": "tool_save_prospection",
+        "instruction": {
+          "type": "static_text",
+          "text": ""
+        },
+        "name": "FIN RÉPONDEUR",
+        "edges": [
+          {
+            "destination_node_id": "node-end-after-save",
+            "id": "e-fin-repondeur-save",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Toujours"
+            }
+          }
+        ],
+        "id": "node-fin-repondeur",
+        "type": "function",
+        "tool_type": "local",
+        "speak_during_execution": false,
+        "display_position": {
+          "x": 0,
+          "y": -500
+        },
+        "wait_for_result": true
+      },
+      {
+        "name": "FIN AFTER SAVE",
+        "id": "node-end-after-save",
+        "type": "end",
+        "speak_during_execution": false,
+        "display_position": {
+          "x": 1400,
+          "y": 200
+        }
+      }
+    ],
+    "start_node_id": "node-accroche",
+    "start_speaker": "agent",
+    "tools": [
+      {
+        "tool_id": "tool_save_prospection",
+        "name": "save_prospection",
+        "description": "Enregistre l'issue de l'appel de prospection (demo_booked, email_sent, repondeur, rejet, rappeler).",
+        "type": "custom",
+        "method": "POST",
+        "url": "{{webhook_url}}/webhook/retell",
+        "execution_message_type": "static_text",
+        "execution_message_description": "J'enregistre votre demande.",
+        "speak_during_execution": true,
+        "speak_after_execution": true,
+        "timeout_ms": 10000,
+        "args_at_root": true,
+        "parameters": {
+          "type": "object",
+          "required": [
+            "tool_name",
+            "args"
+          ],
+          "properties": {
+            "tool_name": {
+              "type": "string",
+              "const": "save_prospection"
+            },
+            "args": {
+              "type": "object",
+              "required": [
+                "outcome"
+              ],
+              "properties": {
+                "outcome": {
+                  "type": "string",
+                  "enum": [
+                    "demo_booked",
+                    "email_sent",
+                    "repondeur",
+                    "rejet",
+                    "rappeler"
+                  ]
+                },
+                "creneau": {
+                  "type": "string",
+                  "description": "Créneau de démo si demo_booked"
+                },
+                "prospect_phone": {
+                  "type": "string",
+                  "description": "Numéro de l'agence appelée"
+                },
+                "prospect_name": {
+                  "type": "string",
+                  "description": "Nom de l'agence"
+                }
+              }
+            }
+          }
+        },
+        "response_variables": {}
+      }
+    ],
+    "model_choice": {
+      "type": "cascading",
+      "model": "gemini-3.1-flash-lite",
+      "high_priority": false
+    },
+    "tool_call_strict_mode": true,
+    "default_dynamic_variables": {
+      "webhook_url": ""
+    },
+    "knowledge_base_ids": [],
+    "kb_config": {
+      "top_k": 3,
+      "filter_score": 0.6
+    },
+    "begin_tag_display_position": {
+      "x": -642,
+      "y": 30
+    },
+    "is_published": false,
+    "flex_mode": false,
+    "is_transfer_cf": false
+  }
+}
