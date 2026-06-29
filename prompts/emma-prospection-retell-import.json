@@ -137,7 +137,7 @@
             }
           }
         ],
-        "start_speaker": "agent",
+        "start_speaker": "user",
         "id": "node-accroche",
         "type": "conversation",
         "display_position": {
@@ -147,7 +147,7 @@
         "responsiveness": 1,
         "instruction": {
           "type": "prompt",
-          "text": "Tu es en train d'appeler une agence immobilière. Accroche-toi en 5 secondes max :\n1. Dis bonjour, présente-toi (Emma, Flowcraft)\n2. Pose UNE question miroir qui touche leur douleur : « Vous arrive-t-il de perdre des mandats parce que vous n'avez pas pu décrocher à temps ? »\n\nNe fais PAS de pitch produit. Juste la question. Attends leur réponse."
+          "text": "Le prospect vient de décrocher et a dit allô/bonjour. Maintenant :\n1. Réponds à son salut : « Bonjour, je m'appelle Emma, de Flowcraft. »\n2. Pose UNE question miroir qui touche leur douleur :\n   « Vous arrive-t-il de perdre des mandats parce que vous n'avez pas pu décrocher à temps ? »\n\nNe fais AUCUN pitch produit. Juste la question. Attends sa réponse."
         }
       },
       {
@@ -425,7 +425,7 @@
       }
     ],
     "start_node_id": "node-accroche",
-    "start_speaker": "agent",
+    "start_speaker": "user",
     "tools": [
       {
         "tool_id": "tool_save_prospection",
