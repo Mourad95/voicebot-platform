@@ -8,6 +8,7 @@ import {
   type ManageAppointmentInput,
 } from '../tools/manageAppointment';
 import { isPriority, notifyAgent } from '../tools/notifyAgent';
+import { isInterestLevel, notifyMe } from '../tools/notifyMe';
 import { saveProspect, type SaveProspectInput } from '../tools/saveProspect';
 import { saveSummary } from '../tools/saveSummary';
 import type { ToolResult } from '../tools/tool-result.types';
@@ -150,6 +151,25 @@ async function dispatchToolCall(
       };
 
       return manageAppointment(input);
+    }
+
+    case 'notify_me': {
+      const interest = args.interest;
+
+      if (!isInterestLevel(interest)) {
+        return {
+          success: false,
+          error: 'Invalid or missing interest (expected chaud|tiede|froid)',
+        };
+      }
+
+      return notifyMe({
+        interest,
+        agencyName: asString(args.agencyName),
+        prospectPhone: asString(args.prospectPhone),
+        summary: asString(args.summary),
+        slot: asString(args.slot),
+      });
     }
 
     case 'save_summary': {

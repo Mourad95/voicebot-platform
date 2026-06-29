@@ -91,7 +91,7 @@
   "ambient_sound": "summer-outdoor",
   "responsiveness": 1,
   "enable_dynamic_responsiveness": true,
-  "begin_message_delay_ms": 500,
+  "begin_message_delay_ms": 1500,
   "allow_user_dtmf": true,
   "allow_dtmf_interruption": false,
   "user_dtmf_options": {},
@@ -99,7 +99,7 @@
   "conversationFlow": {
     "conversation_flow_id": "",
     "version": 2,
-    "global_prompt": "## Identité\nTu es Emma, une assistante vocale IA créée par Flowcraft. Tu appelles des agences immobilières pour leur présenter Flowcraft — et ta conversation avec eux EST la démonstration du produit.\n\n## Mission\nDécrocher une démo personnalisée avec Mourad, le fondateur de Flowcraft. En 2 minutes maximum, tu dois montrer la valeur du produit et obtenir un créneau.\n\n## Règles d'or\n- Vouvoiement. Professionnelle et chaleureuse.\n- Tu es une IA : annonce-le fièrement, c'est le produit que tu vends.\n- Phrases courtes. UNE question à la fois. Jamais deux questions dans la même phrase.\n- Alternative close systématique : « Mardi 10h ou mercredi 14h — quelle option vous convient le mieux ? »\n- Si on te demande une documentation ou un email : « Rien ne remplace 30 secondes d'écoute. Laissez-moi vous montrer concrètement. »\n- Ne jamais insister plus de deux fois. Rester polie et prendre congé si refus clair.\n- Numéro de Mourad : 06 61 87 41 47 (à donner uniquement dans le message répondeur ou si explicitement demandé).\n\n## Posture\nTu n'es pas une commerciale insistante. Tu es une démonstration vivante. Ton objectif est de susciter la curiosité, pas de forcer la vente.",
+    "global_prompt": "## Rôle\nTu es Emma, assistante vocale IA de Flowcraft. Tu appelles des agences immobilières : cette conversation EST la démo du produit. But en 2 min max : obtenir un créneau de démo avec Mourad (fondateur). Suscite la curiosité, ne force jamais la vente.\n\n## Règles\n- Vouvoiement, chaleureuse, phrases courtes. UNE seule question par tour.\n- Assume être une IA, c'est le produit vendu.\n- Close : « Mardi à dix heures ou mercredi à quatorze heures — laquelle vous convient ? »\n- Si on demande doc/email : « Rien ne remplace trente secondes d'écoute. »\n- N'insiste pas plus de deux fois ; prends congé poliment si refus net.\n- Nombres/horaires/numéros TOUJOURS en toutes lettres. Numéro Mourad (répondeur ou si demandé) : « zéro six, soixante et un, quatre-vingt-sept, quarante et un, quarante-sept ».\n- En fin d'appel, appelle l'outil notify_me avec : interest = « chaud » si un rendez-vous est pris, « tiede » si le prospect est intéressé mais sans rendez-vous (demande un email/doc ou veut réfléchir), « froid » sinon. Renseigne agencyName, prospectPhone, un summary court, et slot si un créneau a été fixé.",
     "nodes": [
       {
         "name": "ACCROCHE",
@@ -109,7 +109,7 @@
             "id": "e-accroche-curieux",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "Le prospect est curieux, engagé, ouvert, ou montre de l'intérêt pour écouter la démonstration"
+              "prompt": "Acquiesce, dit que ça lui arrive, est curieux, ou reste à écouter"
             }
           },
           {
@@ -117,7 +117,7 @@
             "id": "e-accroche-occupe",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "Le prospect est occupé, réticent, sceptique, pressé, mais reste en ligne et ne raccroche pas"
+              "prompt": "Réticent ou pressé mais reste en ligne"
             }
           },
           {
@@ -125,7 +125,7 @@
             "id": "e-accroche-rejet",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "Le prospect rejette fermement, dit non catégoriquement, n'est pas du tout intéressé, ou raccroche"
+              "prompt": "Refus net ou raccroche"
             }
           },
           {
@@ -133,11 +133,11 @@
             "id": "e-accroche-repondeur",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "C'est un répondeur ou une messagerie vocale (bip, tonalité, annonce de messagerie)"
+              "prompt": "Répondeur ou messagerie vocale"
             }
           }
         ],
-        "start_speaker": "agent",
+        "start_speaker": "user",
         "id": "node-accroche",
         "type": "conversation",
         "display_position": {
@@ -147,7 +147,7 @@
         "responsiveness": 1,
         "instruction": {
           "type": "static_text",
-          "text": "Bonjour, je m'appelle Emma, je suis une assistante vocale. Je vous appelle de la part de Flowcraft. Je ne vais pas vous vendre quelque chose, je vais juste vous montrer ce que je sais faire. Vous avez 30 secondes ?"
+          "text": "Bonjour, je m'appelle Emma, de Flowcraft. J'aide les agents immobiliers à récupérer les mandats qui leur échappent à cause des appels manqués ou des lignes occupées. Est-ce que vous aussi, vous perdez des clients quand vous êtes en rendez-vous ?"
         }
       },
       {
@@ -158,7 +158,7 @@
             "id": "e-demo-done",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "Le prospect a écouté la démonstration"
+              "prompt": "Toujours"
             }
           }
         ],
@@ -170,7 +170,7 @@
         },
         "instruction": {
           "type": "static_text",
-          "text": "Ce que vous venez d'entendre — une conversation naturelle avec une IA — c'est exactement ce que Flowcraft fait pour les agences immobilières. Décrocher les appels manqués, qualifier les prospects, et envoyer une fiche SMS en moins de 30 secondes. 24h/24, 7j/7."
+          "text": "Le point fort, c'est que vous parlez déjà à notre technologie. Je peux décrocher pour votre agence vingt-quatre heures sur vingt-quatre, qualifier le besoin des acheteurs et vous envoyer leur fiche complète par SMS en moins de trente secondes. Comment gérez-vous vos appels manqués actuellement ?"
         }
       },
       {
@@ -181,7 +181,7 @@
             "id": "e-qualif-interesse",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "Le prospect est intéressé, réceptif, convaincu ou montre un intérêt clair pour Flowcraft"
+              "prompt": "Intéressé ou convaincu"
             }
           },
           {
@@ -189,7 +189,7 @@
             "id": "e-qualif-hesitant",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "Le prospect est hésitant, tiède, pas encore convaincu, ou émet des objections"
+              "prompt": "Hésitant ou émet des objections"
             }
           }
         ],
@@ -201,7 +201,7 @@
         },
         "instruction": {
           "type": "prompt",
-          "text": "Pose ces 3 questions, UNE à la fois, dans l'ordre. Attends la réponse du prospect avant de passer à la suivante. Si le prospect ne sait pas ou refuse de répondre, note-le et passe à la question suivante sans insister.\n\n1. « En moyenne, combien d'appels pensez-vous manquer par jour ? »\n2. « Avez-vous quelqu'un qui décroche en dehors des heures de bureau ? »\n3. « Un appel manqué, c'est potentiellement un mandat perdu. Ça vous parle ? »\n\nAprès les 3 questions, évalue la réaction globale du prospect. S'il est réceptif et engagé, oriente vers la proposition de démo. S'il est hésitant ou tiède, oriente vers le traitement des réticences."
+          "text": "Pose ces 2 questions UNE par tour, en attendant la réponse. Si pas de réponse, enchaîne sans insister.\n1. « En moyenne, combien d'appels pensez-vous manquer par jour ? »\n2. « C'est noté. Et lorsque vous êtes en ligne ou fermé le week-end, vous arrivez à rappeler tous ces clients dans l'heure qui suit ? »\nPuis : réceptif → closing ; hésitant → réticences."
         }
       },
       {
@@ -212,7 +212,7 @@
             "id": "e-closing-creneau",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "Le prospect donne un créneau ou accepte mardi 10h ou mercredi 14h, ou propose une autre date"
+              "prompt": "Accepte un créneau ou en propose un"
             }
           },
           {
@@ -220,7 +220,7 @@
             "id": "e-closing-doc",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "Le prospect demande de la documentation, dit 'envoyez-moi un email', 'envoyez-moi une doc', ou refuse de fixer un rendez-vous maintenant"
+              "prompt": "Demande un email/doc ou refuse de fixer maintenant"
             }
           }
         ],
@@ -232,7 +232,7 @@
         },
         "instruction": {
           "type": "static_text",
-          "text": "Mourad, notre fondateur, peut vous montrer une démo personnalisée. Mardi 10h ou mercredi 14h — quelle option vous convient le mieux ?"
+          "text": "Pour mettre cela en place et booster vos rentrées de mandats, je vous propose un échange de dix minutes avec Mourad, notre fondateur. Qu'est-ce qui vous convient le mieux entre mardi à dix heures, mercredi à quatorze heures, ou un autre créneau à votre convenance ?"
         }
       },
       {
@@ -243,7 +243,7 @@
             "id": "e-reticence-ok",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "Le prospect accepte d'écouter la démonstration, dit oui, OK, allez-y, ou montre une ouverture"
+              "prompt": "Accepte d'écouter la démo"
             }
           },
           {
@@ -251,7 +251,7 @@
             "id": "e-reticence-email",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "Le prospect insiste pour recevoir un email, de la documentation, ou une brochure plutôt qu'une démo live"
+              "prompt": "Insiste pour un email/doc plutôt qu'une démo"
             }
           },
           {
@@ -259,7 +259,7 @@
             "id": "e-reticence-refus",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "Le prospect refuse à nouveau, ne veut pas continuer la conversation, ou exprime un désintérêt clair"
+              "prompt": "Refuse à nouveau ou désintérêt clair"
             }
           }
         ],
@@ -271,7 +271,7 @@
         },
         "instruction": {
           "type": "static_text",
-          "text": "Je comprends. Une suggestion : laissez-moi 30 secondes vous montrer concrètement. Si ça ne vous parle pas, je ne vous dérange plus."
+          "text": "Je comprends que vous soyez débordé, et c'est précisément pour cela que j'existe : vous faire gagner du temps. Une documentation ne pourra pas vous montrer ma réactivité en direct. On bloque dix minutes avec Mourad pour planifier le test sur votre secteur ?"
         }
       },
       {
@@ -282,7 +282,7 @@
             "id": "e-repondeur-done",
             "transition_condition": {
               "type": "prompt",
-              "prompt": "Message laissé sur le répondeur"
+              "prompt": "Toujours"
             }
           }
         ],
@@ -294,14 +294,14 @@
         },
         "instruction": {
           "type": "static_text",
-          "text": "Bonjour, Emma de Flowcraft. Nous aidons les agences à ne plus perdre leurs appels — en décrochant 24h/24 avec une IA naturelle. Mourad peut vous montrer une démo au 06 61 87 41 47. Belle journée."
+          "text": "Bonjour, ici Emma de Flowcraft. Je vous appelais pour vous montrer comment ne plus laisser vos concurrents récupérer les mandats de vos appels manqués. Vous pouvez joindre Mourad, le fondateur de Flowcraft, au zéro six, soixante et un, quatre-vingt-sept, quarante et un, quarante-sept. Excellente journée."
         }
       },
       {
-        "tool_id": "tool_save_prospection",
+        "tool_id": "tool_notify_me",
         "instruction": {
           "type": "static_text",
-          "text": "Merci d'avoir pris le temps. Belle journée."
+          "text": "Je comprends tout à fait. Si un jour vous voulez en reparler, joignez Mourad, notre fondateur, au zéro six, soixante et un, quatre-vingt-sept, quarante et un, quarante-sept. Je vous souhaite de belles ventes et une excellente journée."
         },
         "name": "FIN REJET",
         "edges": [
@@ -325,10 +325,10 @@
         "wait_for_result": true
       },
       {
-        "tool_id": "tool_save_prospection",
+        "tool_id": "tool_notify_me",
         "instruction": {
           "type": "static_text",
-          "text": "Parfait, Mourad vous appelle pour la démo. Belle journée !"
+          "text": "C'est parfait, votre rendez-vous est bloqué. Mourad vous appellera pour configurer vos premières fiches SMS de prospects. Passez une excellente journée, à bientôt."
         },
         "name": "FIN DÉMO BOOKÉE",
         "edges": [
@@ -352,10 +352,10 @@
         "wait_for_result": true
       },
       {
-        "tool_id": "tool_save_prospection",
+        "tool_id": "tool_notify_me",
         "instruction": {
           "type": "static_text",
-          "text": "Très bien, je transmets votre email à Mourad. Belle journée !"
+          "text": "Entendu, je demande à Mourad de vous envoyer toutes les informations par SMS sur ce numéro. Vous pourrez ainsi constater la rapidité de notre outil. Très bonne journée."
         },
         "name": "FIN EMAIL",
         "edges": [
@@ -379,7 +379,7 @@
         "wait_for_result": true
       },
       {
-        "tool_id": "tool_save_prospection",
+        "tool_id": "tool_notify_me",
         "instruction": {
           "type": "static_text",
           "text": ""
@@ -417,19 +417,19 @@
       }
     ],
     "start_node_id": "node-accroche",
-    "start_speaker": "agent",
+    "start_speaker": "user",
     "tools": [
       {
-        "tool_id": "tool_save_prospection",
-        "name": "save_prospection",
-        "description": "Enregistre l'issue de l'appel de prospection (demo_booked, email_sent, repondeur, rejet, rappeler).",
+        "tool_id": "tool_notify_me",
+        "name": "notify_me",
+        "description": "Envoie par SMS à Mourad la qualification du prospect à la fin de l'appel : niveau d'intérêt, nom de l'agence, numéro et résumé.",
         "type": "custom",
         "method": "POST",
         "url": "{{webhook_url}}/webhook/retell",
         "execution_message_type": "static_text",
-        "execution_message_description": "J'enregistre votre demande.",
+        "execution_message_description": "Je transmets votre demande.",
         "speak_during_execution": true,
-        "speak_after_execution": true,
+        "speak_after_execution": false,
         "timeout_ms": 10000,
         "args_at_root": true,
         "parameters": {
@@ -441,35 +441,38 @@
           "properties": {
             "tool_name": {
               "type": "string",
-              "const": "save_prospection"
+              "const": "notify_me"
             },
             "args": {
               "type": "object",
               "required": [
-                "outcome"
+                "interest"
               ],
               "properties": {
-                "outcome": {
+                "interest": {
                   "type": "string",
                   "enum": [
-                    "demo_booked",
-                    "email_sent",
-                    "repondeur",
-                    "rejet",
-                    "rappeler"
-                  ]
+                    "chaud",
+                    "tiede",
+                    "froid"
+                  ],
+                  "description": "Niveau d'intérêt : chaud si RDV pris, tiede si intéressé mais sans RDV, froid sinon"
                 },
-                "creneau": {
+                "agencyName": {
                   "type": "string",
-                  "description": "Créneau de démo si demo_booked"
+                  "description": "Nom de l'agence appelée"
                 },
-                "prospect_phone": {
+                "prospectPhone": {
                   "type": "string",
                   "description": "Numéro de l'agence appelée"
                 },
-                "prospect_name": {
+                "summary": {
                   "type": "string",
-                  "description": "Nom de l'agence"
+                  "description": "Résumé court de l'échange et du besoin du prospect"
+                },
+                "slot": {
+                  "type": "string",
+                  "description": "Créneau de démo si un rendez-vous a été pris"
                 }
               }
             }
@@ -485,7 +488,7 @@
     },
     "tool_call_strict_mode": true,
     "default_dynamic_variables": {
-      "webhook_url": ""
+      "webhook_url": "https://apache-spoiled-contusion.ngrok-free.dev"
     },
     "knowledge_base_ids": [],
     "kb_config": {

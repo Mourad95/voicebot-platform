@@ -43,6 +43,9 @@ export const config = {
     smsMock: optional('SMS_MOCK') === 'true',
   },
 
+  // Numéro perso qui reçoit les SMS de qualification des prospects (campagne Emma).
+  myPhone: optional('MY_PHONE'),
+
   callLimits: {
     maxPerPhonePerDay: optionalInt('CALL_MAX_PER_PHONE_PER_DAY', 5),
     maxPerDay: optionalInt('CALL_MAX_PER_DAY', 200),
