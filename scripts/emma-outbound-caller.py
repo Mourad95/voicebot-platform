@@ -231,6 +231,13 @@ def main():
             skipped_score += 1
             continue
 
+        # Exclure les groupes/franchises — ne cibler QUE les indépendants
+        lead_type = lead.get("type", "")
+        priority = lead.get("priority", "")
+        if lead_type == "group" or priority == "exclude":
+            skipped_score += 1
+            continue
+
         last_contact = lead.get("last_contact")
         if is_recent_contact(last_contact, args.contact_cooldown):
             skipped_recent += 1
