@@ -6,7 +6,7 @@
   "response_engine": {
     "type": "conversation-flow",
     "version": 0,
-    "conversation_flow_id": "conversation_flow_53a27314de64"
+    "conversation_flow_id": "conversation_flow_545dd97b4c28"
   },
   "language": "fr-FR",
   "data_storage_setting": "everything",
@@ -178,7 +178,7 @@
         },
         "instruction": {
           "type": "prompt",
-          "text": "Le prospect est en ligne et intéressé. Maintenant tu peux faire le lien entre son problème et Flowcraft.\n\n1. Reformule sa douleur : « Donc vous avez déjà perdu des appels importants quand vous étiez en rendez-vous ? »\n2. Révèle que la conversation en cours EST la démo : « Ce que vous entendez là, c'est le produit. Moi, Emma, je suis Flowcraft. Je décroche 24h/24, je qualifie les prospects et j'envoie une fiche SMS en 30 secondes. »\n3. Ne listes pas les fonctionnalités. Montre la valeur concrète : « Un appel manqué = un mandat perdu potentiellement. On évite ça. »\n\nTermine par une question ouverte qui valide son interet : question Est-ce que ca vous parle ou question Vous voyez l'interet pour votre agence"
+          "text": "Le prospect est en ligne et intéressé. Maintenant tu peux faire le lien entre son problème et Flowcraft.\n\n1. Reformule sa douleur : « Donc vous avez déjà perdu des appels importants quand vous étiez en rendez-vous ? »\n2. Révèle que la conversation en cours EST la démo : « Ce que vous entendez là, c'est le produit. Moi, Emma, je suis Flowcraft. Je décroche 24 heures sur 24, je qualifie les prospects et j'envoie une fiche SMS en 30 secondes. »\n3. Ne listes pas les fonctionnalités. Montre la valeur concrète : « Un appel manqué = un mandat perdu potentiellement. On évite ça. »\n\nTermine par une question ouverte qui valide son interet : question Est-ce que ca vous parle ou question Vous voyez l'interet pour votre agence"
         }
       },
       {
@@ -302,7 +302,7 @@
         },
         "instruction": {
           "type": "static_text",
-          "text": "Bonjour, Emma de Flowcraft. Nous aidons les agences à ne plus perdre leurs appels — en décrochant 24h/24 avec une IA naturelle. Mourad peut vous montrer une démo au 06 61 87 41 47. Belle journée."
+          "text": "Bonjour, Emma de Flowcraft. Nous aidons les agences à ne plus perdre leurs appels — en décrochant 24 heures sur 24 avec une IA naturelle. Mourad peut vous montrer une démo au 06 61 87 41 47. Belle journée."
         }
       },
       {
