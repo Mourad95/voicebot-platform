@@ -6,7 +6,7 @@
   "response_engine": {
     "type": "conversation-flow",
     "version": 0,
-    "conversation_flow_id": "conversation_flow_b4b24de16730"
+    "conversation_flow_id": "conversation_flow_d3c11e6f9604"
   },
   "language": "fr-FR",
   "data_storage_setting": "everything",
@@ -147,7 +147,7 @@
         "responsiveness": 1,
         "instruction": {
           "type": "prompt",
-          "text": "Le prospect vient de décrocher et a dit allô/bonjour. Maintenant :\n1. Réponds à son salut : « Bonjour, je m'appelle Emma, de Flowcraft. »\n2. Pose UNE question miroir qui touche leur douleur :\n   « Vous arrive-t-il de perdre des mandats parce que vous n'avez pas pu décrocher à temps ? »\n\nNe fais AUCUN pitch produit. Juste la question. Attends sa réponse."
+          "text": "Le prospect vient de décrocher et a dit allô/bonjour. Maintenant :\n1. Réponds à son salut : « Bonjour, je m'appelle Emma, de Flowcraft. Nous aidons les agences à ne plus perdre leurs appels. »\n2. Puis pose doucement la question : « Est-ce qu'il vous arrive de rater des appels importants quand vous êtes en rendez-vous ? »\n\nNe fais AUCUN pitch produit. Juste la question. Attends sa réponse."
         }
       },
       {
