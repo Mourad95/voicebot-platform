@@ -6,7 +6,7 @@
   "response_engine": {
     "type": "conversation-flow",
     "version": 0,
-    "conversation_flow_id": "conversation_flow_545dd97b4c28"
+    "conversation_flow_id": "conversation_flow_fea48731e6af"
   },
   "language": "fr-FR",
   "data_storage_setting": "everything",
@@ -302,7 +302,7 @@
         },
         "instruction": {
           "type": "static_text",
-          "text": "Bonjour, Emma de Flowcraft. Nous aidons les agences à ne plus perdre leurs appels — en décrochant 24 heures sur 24 avec une IA naturelle. Mourad peut vous montrer une démo au 06 61 87 41 47. Belle journée."
+          "text": "Bonjour, Emma de Flowcraft. Nous aidons les agences à ne plus perdre leurs appels — en décrochant 24 heures sur 24 (prononce \"24 heures sur 24\", JAMAIS \"24h/24\") avec une IA naturelle. Mourad peut vous montrer une démo au 06 61 87 41 47. Belle journée."
         }
       },
       {
