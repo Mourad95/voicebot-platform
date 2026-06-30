@@ -6,7 +6,7 @@
   "response_engine": {
     "type": "conversation-flow",
     "version": 0,
-    "conversation_flow_id": "conversation_flow_4a0692e09b2a"
+    "conversation_flow_id": "conversation_flow_f58449019421"
   },
   "language": "fr-FR",
   "data_storage_setting": "everything",
@@ -178,7 +178,7 @@
         },
         "instruction": {
           "type": "static_text",
-          "text": "Donc vous avez déjà perdu des appels importants quand vous étiez en rendez-vous ? Ce que vous entendez là, c'est le produit. Moi, Emma, je suis Flowcraft : je décroche vingt-quatre heures sur vingt-quatre, je qualifie vos prospects et je vous envoie une fiche récapitulative par SMS en trente secondes. Un appel manqué, c'est potentiellement un mandat perdu. Est-ce que ça vous parle ?"
+          "text": "Nous aidons les agences à ne plus perdre leurs appels — en décrochant vingt-quatre heures sur vingt-quatre, en qualifiant vos prospects et en vous envoyant une fiche récapitulative par SMS en trente secondes. Un appel manqué, c'est potentiellement un mandat perdu. Est-ce que ça vous parle ?"
         }
       },
       {
