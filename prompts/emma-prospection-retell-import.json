@@ -1,12 +1,12 @@
 {
-  "agent_id": "",
+  "agent_id": "agent_9f0c7a8abd66e1be30a4c66038",
   "channel": "voice",
-  "last_modification_timestamp": 1782000000000,
-  "agent_name": "Emma Prospectrice — Flowcraft",
+  "last_modification_timestamp": 1782809066871,
+  "agent_name": "Emma Prospectrice — Flowcraft v3",
   "response_engine": {
     "type": "conversation-flow",
-    "version": 2,
-    "conversation_flow_id": ""
+    "version": 0,
+    "conversation_flow_id": "conversation_flow_53a27314de64"
   },
   "language": "fr-FR",
   "data_storage_setting": "everything",
