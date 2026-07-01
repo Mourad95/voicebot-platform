@@ -493,7 +493,7 @@
     },
     "tool_call_strict_mode": true,
     "default_dynamic_variables": {
-      "webhook_url": ""
+      "webhook_url": "https://apache-spoiled-contusion.ngrok-free.dev"
     },
     "contact_dynamic_variables": {
       "previous_node": ""
