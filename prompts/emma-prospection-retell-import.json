@@ -147,7 +147,7 @@
         "responsiveness": 1,
         "instruction": {
           "type": "prompt",
-          "text": "Le prospect a décroché et s'appelle Magali. Maintenant :\n1. Réponds à son salut : « Bonjour Magali, je suis Emma de Flowcraft, l'assistante virtuelle créée par Mourad. Nous aidons les agences à ne plus perdre leurs appels. »\n2. Puis pose doucement la question : « Est-ce qu'il vous arrive de rater des appels importants quand vous êtes en rendez-vous ? »\n\nNe fais AUCUN pitch produit. Juste la question. Attends sa réponse."
+          "text": "Le prospect a décroché. Maintenant :\n1. Réponds à son salut en te présentant : « Bonjour, je suis Emma de Flowcraft. Nous aidons les agences à ne plus perdre leurs appels. »\n2. Puis pose la question : « Est-ce qu'il vous arrive de rater des appels importants quand vous êtes en rendez-vous ? »\n\nNe fais AUCUN pitch produit. Juste la question. Attends sa réponse."
         }
       },
       {
